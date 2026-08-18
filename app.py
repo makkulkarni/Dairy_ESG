@@ -6,12 +6,30 @@ Main Streamlit Application Entry Point
 import json
 import pandas as pd
 import streamlit as st
-
+import os
 from engine.carbon_math import calculate_baseline_emissions
 from components.sidebar import render_sidebar
 from views.tab_baseline import render_tab_baseline
 from views.tab_mitigation import render_tab_mitigation
 from views.tab_climate_risk import render_tab_climate_risk
+
+# --- Sidebar Documentation Download Section ---
+st.sidebar.markdown("---")
+st.sidebar.subheader("📖 Documentation")
+
+doc_path = os.path.join("docs", "Dairy_ESG_Analytics_Architecture.docx")
+
+if os.path.exists(doc_path):
+    with open(doc_path, "rb") as file:
+        st.sidebar.download_button(
+            label="📄 Download ESG Architecture Doc",
+            data=file,
+            file_name="Dairy_ESG_Analytics_Architecture.docx",
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            help="Download the complete technical documentation and architecture design document."
+        )
+else:
+    st.sidebar.warning("Documentation file not found in `docs/` folder.")
 
 # 1. Page Configuration
 st.set_page_config(
