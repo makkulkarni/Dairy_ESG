@@ -1,0 +1,12 @@
+# Core Streamlit Web Application
+streamlit>=1.31.0
+
+# Data Processing & Numerical Math
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Interactive Data Visualization
+plotly>=5.18.0
+
+# Automated Testing Framework
+pytest>=7.4.0

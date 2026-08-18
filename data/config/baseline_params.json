@@ -1,0 +1,42 @@
+{
+  "enterprise_defaults": {
+    "daily_processing_volume_liters": 20000000,
+    "target_reduction_pct": 30.0,
+    "target_year": 2030,
+    "grid_emission_factor_kg_co2e_kwh": 0.716,
+    "diesel_emission_factor_kg_co2e_liter": 2.68,
+    "tanker_transit_factor_kg_co2e_tonkm": 0.11
+  },
+  "ipcc_gwp_ar6": {
+    "co2": 1.0,
+    "ch4_biogenic": 28.0,
+    "n2o": 265.0
+  },
+  "scope3_farm_baseline": {
+    "enteric_ch4_kg_per_head_yr": {
+      "crossbred_cow": 65.0,
+      "buffalo": 58.0,
+      "indigenous_cow": 42.0
+    },
+    "manure_ch4_kg_per_head_yr": {
+      "crossbred_cow": 5.5,
+      "buffalo": 4.5,
+      "indigenous_cow": 3.0
+    },
+    "feed_n2o_kg_per_head_yr": {
+      "crossbred_cow": 1.8,
+      "buffalo": 1.5,
+      "indigenous_cow": 1.0
+    },
+    "average_milk_yield_liters_per_day": {
+      "crossbred_cow": 9.5,
+      "buffalo": 6.8,
+      "indigenous_cow": 3.2
+    }
+  },
+  "mitigation_max_efficiencies": {
+    "ration_balancing_max_enteric_reduction": 0.15,
+    "solar_bmc_max_grid_replacement": 1.0,
+    "manure_digester_max_methane_capture": 0.60
+  }
+}

@@ -1,0 +1,5 @@
+scenario_code,scenario_name,temp_anomaly_c,avg_summer_thi,crossbred_yield_loss_pct,buffalo_yield_loss_pct
+baseline,Current Climate Baseline,0.0,72.0,0.0,0.0
+ssp1_26,SSP1-2.6 (1.5°C Warming),1.5,75.2,8.5,4.2
+ssp2_45,SSP2-4.5 (2.7°C Warming),2.7,78.6,16.0,8.1
+ssp5_85,SSP5-8.5 (4.4°C Warming),4.4,83.1,24.5,12.4

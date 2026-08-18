@@ -1,0 +1,4 @@
+zone_id,zone_name,share_pct,baseline_intensity_kg_co2e_kg_milk,crossbred_share,buffalo_share,indigenous_share,avg_transport_km
+zone_1,Western Hub (Gujarat/Rajasthan),35,2.25,0.35,0.50,0.15,180
+zone_2,Northern Belt (Punjab/Haryana/UP),45,1.98,0.55,0.35,0.10,220
+zone_3,Southern Zone (Karnataka/MH),20,2.10,0.40,0.40,0.20,140

@@ -1,0 +1,44 @@
+dairy-climate-dashboard/
+│
+├── .streamlit/
+│   └── config.toml           # Streamlit UI layout theme and settings
+│
+├── docs/                     # Documentation suite
+│   ├── prd.md
+│   ├── architecture.md
+│   ├── rules.md
+│   ├── phases.md
+│   ├── design.md
+│   └── memory.md
+│
+├── data/                     # Input datasets and reference data
+│   ├── raw/                  # Reference CSVs / JSONs (e.g., regional grid factors)
+│   └── config/               # Parameter defaults (e.g., emission factors, IPCC scenarios)
+│       └── baseline_params.json
+│
+├── engine/                   # Pure Python analytical core (No Streamlit UI code)
+│   ├── __init__.py
+│   ├── carbon_math.py        # GHG Scope 1, 2, 3 calculation engine
+│   ├── climate_risk.py       # THI calculations & IPCC yield degradation logic
+│   └── mitigation.py         # Lever abatement math & trade-off models
+│
+├── components/               # UI components and view elements
+│   ├── __init__.py
+│   ├── sidebar.py            # Custom sidebar parameter controls
+│   ├── metrics_cards.py      # Summary KPI card widgets
+│   └── charts.py             # Plotly charts (donut, waterfall, dual-axis)
+│
+├── views/                    # Tab views/pages logic
+│   ├── __init__.py
+│   ├── tab_baseline.py       # Baseline GHG footprint view
+│   ├── tab_mitigation.py     # Decarbonization levers simulator
+│   └── tab_climate_risk.py   # IPCC stress-testing view
+│
+├── tests/                    # Unit tests for analytical calculations
+│   ├── test_carbon_math.py
+│   └── test_climate_risk.py
+│
+├── app.py                    # Main Streamlit application entry point
+├── requirements.txt          # Project dependencies
+├── README.md                 # Project overview and run instructions
+└── .gitignore                # Git ignore standard rules
