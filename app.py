@@ -106,7 +106,7 @@ with tab_overview:
         st.markdown("""
         <div class="metric-card">
             <div class="metric-title">Active Herd Needed</div>
-            <div class="metric-value">333,333 Cows</div>
+            <div class="metric-value">333,333 Cows </div>
             <div class="metric-desc">Based on current average yield of 6 Liters/cow per day.</div>
         </div>
         """, unsafe_allow_html=True)
@@ -115,7 +115,7 @@ with tab_overview:
         st.markdown("""
         <div class="metric-card">
             <div class="metric-title">Annual Methane Burps</div>
-            <div class="metric-value">20,000 Tons</div>
+            <div class="metric-value">20,000 Tons (60 kg per cow per year) </div>
             <div class="metric-desc">Produced by cows during natural digestive fermentation.</div>
         </div>
         """, unsafe_allow_html=True)
