@@ -86,19 +86,21 @@ tab_overview,tab1, tab2, tab3 = st.tabs([
 
 with tab_overview:
     st.header("Dairy Value Chain Decarbonization Framework")
-    st.caption("Strategic Executive Briefing: Goals, Operational Process & Baseline Assumptions")
+    st.caption("Strategic Executive Briefing: Enterprise Goals, Operational Process & Baseline Assumptions")
     
     st.markdown("---")
     
-    # 1. Goal Section
+    # Section 1: Enterprise Goal
     st.subheader("🎯 Enterprise Decarbonization Goal")
     st.markdown("""
-    * **Target:** Achieve a **30% reduction in carbon intensity** ($\text{kg CO}_2\text{e / kg milk}$) by **2030**.
-    * **Enterprise Scale:** Base procurement volume of **2.0 Million Liters/day** ($\approx 2,060,000\text{ kg/day}$ at $1.03\text{ kg/L}$ density), equivalent to **~751.8 Million kg annually**.
-    * **Scope Breakdown:** Track and abate emissions across **Scope 1** (diesel generators), **Scope 2** (purchased grid electricity), and **Scope 3** (upstream smallholder farming network and raw milk transport).
+    * **Primary Target:** Achieve a **30% reduction in overall carbon intensity** ($1.870 \\rightarrow 1.309\\text{ kg CO}_2\\text{e / kg milk}$) by **2030**.
+    * **Enterprise Scale:** Base procurement volume of **2.0 Million Liters/day** ($\approx 2,060,000\\text{ kg/day}$ at $1.03\\text{ kg/L}$ density), totaling **~751.8 Million kg annually**.
+    * **Comprehensive Scope:** Full accounting across **Scope 1** (diesel generators/boilers), **Scope 2** (purchased grid power), and **Scope 3** (upstream smallholder farming & milk transport logistics).
     """)
     
-    # 2. Process Section
+    st.markdown("---")
+    
+    # Section 2: Operational Process
     st.subheader("⚙️ ESG Accounting & Modeling Process")
     
     col_proc1, col_proc2, col_proc3 = st.columns(3)
@@ -106,30 +108,30 @@ with tab_overview:
     with col_proc1:
         st.markdown("**1. Baseline Footprinting**")
         st.markdown("""
-        * Calculate physical mass balance across procurement zones.
-        * Apply **IPCC AR6** global warming potentials for multi-gas emissions ($\text{CO}_2, \text{CH}_4, \text{N}_2\text{O}$).
-        * Establish baseline carbon intensity per unit of processed milk.
+        * Track physical milk mass balance across regional procurement zones.
+        * Convert multi-gas emissions ($\text{CO}_2, \text{CH}_4, \text{N}_2\text{O}$) using **IPCC AR6** Global Warming Potentials.
+        * Establish current carbon intensity per kg of raw milk processed.
         """)
         
     with col_proc2:
         st.markdown("**2. Intervention Simulation**")
         st.markdown("""
-        * Model targeted abatement levers: **Precision Feed Rationing**, **Solar BMC Conversion**, and **Manure Digesters**.
-        * Dynamically simulate herd yield improvements (*Dilution of Maintenance Effect*).
-        * Evaluate cost-benefit abatement pathways.
+        * Model 3 targeted decarbonization levers: **Precision Feed Rationing**, **Solar BMC Conversion**, and **Manure Digesters**.
+        * Dynamically calculate herd yield improvements (*Dilution of Maintenance Effect*).
+        * Project step-by-step abatement pathways on a dynamic waterfall chart.
         """)
         
     with col_proc3:
         st.markdown("**3. Physical Climate Stress Testing**")
         st.markdown("""
-        * Project Temperature-Humidity Index (THI) heat stress scenarios (SSP5-8.5).
-        * Quantify biological yield penalties on smallholder livestock.
-        * Model feed intake loss and financial/emissions feedback penalties.
+        * Model Temperature-Humidity Index (THI) heat stress under climate scenarios (SSP5-8.5).
+        * Quantify biological milk yield loss penalties in cattle/buffaloes.
+        * Calculate total herd expansion requirements and financial/carbon feedback risks.
         """)
 
     st.markdown("---")
 
-    # 3. Key Baseline Assumptions
+    # Section 3: Key Assumptions & Parameters
     st.subheader("📌 Key Modeling Assumptions & Parameters")
     
     col_asm1, col_asm2 = st.columns(2)
@@ -137,23 +139,21 @@ with tab_overview:
     with col_asm1:
         st.markdown("**Operational & Grid Parameters**")
         st.markdown("""
-        * **Raw Milk Density:** $1.03\text{ kg/L}$ (Dairy industry standard).
-        * **Plant Diesel Usage (Scope 1):** $0.005\text{ Liters / kg milk}$ ($2.68\text{ kg CO}_2\text{e / L}$).
-        * **Grid Electricity Usage (Scope 2):** $0.04\text{ kWh / kg milk}$ ($0.716\text{ kg CO}_2\text{e / kWh}$).
-        * **Transit Logistics (Scope 3):** Average $100\text{--}120\text{ km}$ radius using insulated milk tankers ($0.11\text{ kg CO}_2\text{e / ton-km}$).
+        * **Raw Milk Density:** $1.03\\text{ kg/L}$ (Standard dairy conversion factor).
+        * **Plant Diesel Usage (Scope 1):** $0.005\\text{ Liters / kg milk}$ ($2.68\\text{ kg CO}_2\\text{e / L}$).
+        * **Grid Electricity Usage (Scope 2):** $0.04\\text{ kWh / kg milk}$ ($0.716\\text{ kg CO}_2\\text{e / kWh}$).
+        * **Collection Transit (Scope 3):** Average $100\\text{--}120\\text{ km}$ radius ($0.11\\text{ kg CO}_2\\text{e / ton-km}$).
         """)
         
     with col_asm2:
         st.markdown("**Livestock & Biological Factors (Scope 3)**")
         st.markdown("""
-        * **Global Warming Potentials:** $\text{CH}_4 = 28.0\times\text{CO}_2\text{e}$, $\text{N}_2\text{O} = 265.0\times\text{CO}_2\text{e}$.
-        * **Enteric Methane Emission Factors:** $58\text{ to }65\text{ kg CH}_4/\text{head/year}$ based on regional herd mix (Crossbred, Buffalo, Indigenous).
-        * **Yield Dilution Effect:** Precision ration balancing improves per-animal yield, reducing the overall head count needed to meet target milk contracts.
+        * **Global Warming Potentials (GWP):** $\\text{CH}_4 = 28.0\\times\\text{CO}_2\\text{e}$, $\\text{N}_2\\text{O} = 265.0\\times\\text{CO}_2\\text{e}$.
+        * **Enteric Methane Emission Factors:** $58\\text{ to }65\\text{ kg CH}_4/\\text{head/year}$ across regional herd mix.
+        * **Yield Dilution Effect:** Optimized feed boosts individual yield, reducing total required herd size for fixed enterprise targets.
         """)
 
-    # Optional Callout Box
-    st.info("💡 **How to navigate:** Select **'📊 Baseline Footprint'** above to explore the current emissions distribution, or move to **'🌱 Decarbonization Simulator'** to adjust intervention adoption rates.")
-
+    st.info("💡 **Navigation:** Click on **'📊 Baseline Footprint'** above to examine detailed emissions breakdowns, or move to **'🌱 Decarbonization Simulator'** to test adoption levers.")
 # P
 
 
