@@ -77,11 +77,85 @@ baseline_results = calculate_baseline_emissions(
 )
 
 # 6. Tab Navigation Layout
-tab1, tab2, tab3 = st.tabs([
+tab_overview,tab1, tab2, tab3 = st.tabs([
+    "📋 Overview & Methodology",
     "📊 Baseline Footprint", 
     "🌱 Decarbonization Simulator", 
     "☀️ Climate Stress-Test"
 ])
+
+with tab_overview:
+    st.header("Dairy Value Chain Decarbonization Framework")
+    st.caption("Strategic Executive Briefing: Goals, Operational Process & Baseline Assumptions")
+    
+    st.markdown("---")
+    
+    # 1. Goal Section
+    st.subheader("🎯 Enterprise Decarbonization Goal")
+    st.markdown("""
+    * **Target:** Achieve a **30% reduction in carbon intensity** ($\text{kg CO}_2\text{e / kg milk}$) by **2030**.
+    * **Enterprise Scale:** Base procurement volume of **2.0 Million Liters/day** ($\approx 2,060,000\text{ kg/day}$ at $1.03\text{ kg/L}$ density), equivalent to **~751.8 Million kg annually**.
+    * **Scope Breakdown:** Track and abate emissions across **Scope 1** (diesel generators), **Scope 2** (purchased grid electricity), and **Scope 3** (upstream smallholder farming network and raw milk transport).
+    """)
+    
+    # 2. Process Section
+    st.subheader("⚙️ ESG Accounting & Modeling Process")
+    
+    col_proc1, col_proc2, col_proc3 = st.columns(3)
+    
+    with col_proc1:
+        st.markdown("**1. Baseline Footprinting**")
+        st.markdown("""
+        * Calculate physical mass balance across procurement zones.
+        * Apply **IPCC AR6** global warming potentials for multi-gas emissions ($\text{CO}_2, \text{CH}_4, \text{N}_2\text{O}$).
+        * Establish baseline carbon intensity per unit of processed milk.
+        """)
+        
+    with col_proc2:
+        st.markdown("**2. Intervention Simulation**")
+        st.markdown("""
+        * Model targeted abatement levers: **Precision Feed Rationing**, **Solar BMC Conversion**, and **Manure Digesters**.
+        * Dynamically simulate herd yield improvements (*Dilution of Maintenance Effect*).
+        * Evaluate cost-benefit abatement pathways.
+        """)
+        
+    with col_proc3:
+        st.markdown("**3. Physical Climate Stress Testing**")
+        st.markdown("""
+        * Project Temperature-Humidity Index (THI) heat stress scenarios (SSP5-8.5).
+        * Quantify biological yield penalties on smallholder livestock.
+        * Model feed intake loss and financial/emissions feedback penalties.
+        """)
+
+    st.markdown("---")
+
+    # 3. Key Baseline Assumptions
+    st.subheader("📌 Key Modeling Assumptions & Parameters")
+    
+    col_asm1, col_asm2 = st.columns(2)
+    
+    with col_asm1:
+        st.markdown("**Operational & Grid Parameters**")
+        st.markdown("""
+        * **Raw Milk Density:** $1.03\text{ kg/L}$ (Dairy industry standard).
+        * **Plant Diesel Usage (Scope 1):** $0.005\text{ Liters / kg milk}$ ($2.68\text{ kg CO}_2\text{e / L}$).
+        * **Grid Electricity Usage (Scope 2):** $0.04\text{ kWh / kg milk}$ ($0.716\text{ kg CO}_2\text{e / kWh}$).
+        * **Transit Logistics (Scope 3):** Average $100\text{--}120\text{ km}$ radius using insulated milk tankers ($0.11\text{ kg CO}_2\text{e / ton-km}$).
+        """)
+        
+    with col_asm2:
+        st.markdown("**Livestock & Biological Factors (Scope 3)**")
+        st.markdown("""
+        * **Global Warming Potentials:** $\text{CH}_4 = 28.0\times\text{CO}_2\text{e}$, $\text{N}_2\text{O} = 265.0\times\text{CO}_2\text{e}$.
+        * **Enteric Methane Emission Factors:** $58\text{ to }65\text{ kg CH}_4/\text{head/year}$ based on regional herd mix (Crossbred, Buffalo, Indigenous).
+        * **Yield Dilution Effect:** Precision ration balancing improves per-animal yield, reducing the overall head count needed to meet target milk contracts.
+        """)
+
+    # Optional Callout Box
+    st.info("💡 **How to navigate:** Select **'📊 Baseline Footprint'** above to explore the current emissions distribution, or move to **'🌱 Decarbonization Simulator'** to adjust intervention adoption rates.")
+
+# P
+
 
 with tab1:
     render_tab_baseline(baseline_results, regional_df)
