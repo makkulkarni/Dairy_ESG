@@ -181,7 +181,7 @@ with tab_overview:
         st.error("**CURRENT BASELINE (Unbalanced Feed)**")
         st.markdown("""
         * **Daily Milk Yield:** $6\\text{ Liters per cow}$
-        * **Active Herd Needed:** **333,333 Cows** ($\frac{2,000,000\\text{ L}}{6\\text{ L/cow}}$)
+        * **Active Herd Needed:** **333,333 Cows** ($\\frac{2,000,000\\text{ L}}{6\\text{ L/cow}}$)
         * **Burp Methane:** **20,000 Tonnes of Methane gas / year**
         * **Result:** A massive active herd burping gas continuously to meet our delivery target.
         """)
@@ -190,7 +190,7 @@ with tab_overview:
         st.success("**IMPROVED FEED SCENARIO (Balanced Nutrition)**")
         st.markdown("""
         * **Daily Milk Yield:** $10\\text{ Liters per cow}$
-        * **Active Herd Needed:** **200,000 Cows** ($\frac{2,000,000\\text{ L}}{10\\text{ L/cow}}$)
+        * **Active Herd Needed:** **200,000 Cows** ($\\frac{2,000,000\\text{ L}}{10\\text{ L/cow}}$)
         * **Burp Methane:** **12,000 Tonnes of Methane gas / year**
         * **Result:** Fulfill the exact same 2M Liter milk contract with **133,333 FEWER cows** ($40\\%$ reduction).
         """)
