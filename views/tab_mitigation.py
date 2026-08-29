@@ -46,6 +46,15 @@ def render_tab_mitigation(baseline_data: dict, params: dict, target_pct: float):
             step=5,
             help="Captures biogenic methane from manure storage for biogas utilization."
         ) / 100.0
+
+        genetics_pct = st.slider(
+            "Herd Health, Genetics & Fertility Improvement (%)",
+            min_value=0,
+            max_value=100,
+            value=45,
+            step=5,
+            help="Improves herd productivity and fertility, reducing emissions from the herd required to maintain output."
+        ) / 100.0
         
         # Calculate Abatement Results
         mitigation_results = apply_mitigation_levers(
@@ -53,7 +62,8 @@ def render_tab_mitigation(baseline_data: dict, params: dict, target_pct: float):
             ration_balancing_pct=ration_pct,
             solar_bmc_pct=solar_pct,
             manure_digester_pct=digester_pct,
-            params=params
+            params=params,
+            genetics_health_pct=genetics_pct
         )
         
     with col2:
@@ -70,7 +80,8 @@ def render_tab_mitigation(baseline_data: dict, params: dict, target_pct: float):
     st.markdown("---")
     
     # Impact Summary Table
-    res_col1, res_col2, res_col3 = st.columns(3)
+    res_col1, res_col2, res_col3, res_col4 = st.columns(4)
     res_col1.metric("Abated Carbon Volume", f"{mitigation_results['total_abatement_tco2e']:,.0f} tCO₂e/yr")
     res_col2.metric("New Carbon Intensity", f"{mitigation_results['new_carbon_intensity']:.3f} kg CO₂e/kg")
     res_col3.metric("Net Intensity Reduction", f"-{mitigation_results['pct_reduction_achieved']:.1f}%")
+    res_col4.metric("Active Herd After Feed", f"{mitigation_results['mitigated_active_herd_count']:,.0f}")

@@ -35,8 +35,10 @@
     }
   },
   "mitigation_max_efficiencies": {
-    "ration_balancing_max_enteric_reduction": 0.15,
+    "ration_balancing_max_enteric_reduction": 0.45,
+    "ration_balancing_max_yield_improvement": 0.35,
     "solar_bmc_max_grid_replacement": 1.0,
-    "manure_digester_max_methane_capture": 0.60
+    "manure_digester_max_methane_capture": 0.60,
+    "herd_health_genetics_max_abatement": 0.08
   }
 }

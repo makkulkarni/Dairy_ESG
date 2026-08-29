@@ -13,6 +13,14 @@ from views.tab_baseline import render_tab_baseline
 from views.tab_mitigation import render_tab_mitigation
 from views.tab_climate_risk import render_tab_climate_risk
 
+# Page configuration must be the first Streamlit command.
+st.set_page_config(
+    page_title="Dairy Decarbonization & Climate Simulator",
+    page_icon="🥛",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
 # --- Sidebar Documentation Download Section ---
 st.sidebar.markdown("---")
 st.sidebar.subheader("📖 Documentation")
@@ -30,14 +38,6 @@ if os.path.exists(doc_path):
         )
 else:
     st.sidebar.warning("Documentation file not found in `docs/` folder.")
-
-# 1. Page Configuration
-st.set_page_config(
-    page_title="Dairy Decarbonization & Climate Simulator",
-    page_icon="🥛",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
 
 # 2. Data Loader Functions
 @st.cache_data
@@ -94,38 +94,38 @@ with tab_overview:
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.markdown("""
+        st.markdown(f"""
         <div class="metric-card">
             <div class="metric-title">Daily Milk Target</div>
-            <div class="metric-value">2.0M Liters</div>
-            <div class="metric-desc">~2.06 Million kg of processed milk per day (751.8M kg/year).</div>
+            <div class="metric-value">{user_inputs["daily_volume_liters"] / 1e6:.1f}M Liters</div>
+            <div class="metric-desc">~{baseline_results["annual_milk_kg"] / 365 / 1e6:,.2f} Million kg of processed milk per day.</div>
         </div>
         """, unsafe_allow_html=True)
         
     with col2:
-        st.markdown("""
+        st.markdown(f"""
         <div class="metric-card">
             <div class="metric-title">Active Herd Needed</div>
-            <div class="metric-value">333,333 Cows </div>
-            <div class="metric-desc">Based on current average yield of 6 Liters/cow per day.</div>
+            <div class="metric-value">{baseline_results["baseline_active_herd_count"]:,.0f} Cows</div>
+            <div class="metric-desc">Based on the regional herd mix and current average yield of {baseline_results["average_daily_yield_liters"]:.1f} L/cow/day.</div>
         </div>
         """, unsafe_allow_html=True)
         
     with col3:
-        st.markdown("""
+        st.markdown(f"""
         <div class="metric-card">
             <div class="metric-title">Annual Methane Burps</div>
-            <div class="metric-value">20,000 Tons (60 kg per cow per year) </div>
-            <div class="metric-desc">Produced by cows during natural digestive fermentation.</div>
+            <div class="metric-value">{baseline_results["baseline_active_herd_count"] * 60 / 1000:,.0f} Tons</div>
+            <div class="metric-desc">Illustrative annual methane output at 60 kg per active cow.</div>
         </div>
         """, unsafe_allow_html=True)
         
     with col4:
-        st.markdown("""
+        st.markdown(f"""
         <div class="metric-card">
             <div class="metric-title">2030 Reduction Goal</div>
-            <div class="metric-value">30% Drop</div>
-            <div class="metric-desc">Targeting 1.309 kg carbon/kg milk (down from 1.870 kg).</div>
+            <div class="metric-value">{user_inputs["target_reduction_pct"]:.0f}% Drop</div>
+            <div class="metric-desc">Target intensity: {baseline_results["carbon_intensity_kg_co2e_per_kg_milk"] * (1 - user_inputs["target_reduction_pct"] / 100):.3f} kg CO₂e/kg milk.</div>
         </div>
         """, unsafe_allow_html=True)
 

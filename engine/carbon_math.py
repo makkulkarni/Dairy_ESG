@@ -70,6 +70,7 @@ def calculate_baseline_emissions(
     # 3. Scope 3: Upstream Farm + Transport Logistics
     scope3_farm_kg_co2e = 0.0
     scope3_transport_kg_co2e = 0.0
+    total_herd_count = 0.0
     
     gwp_ch4 = params["ipcc_gwp_ar6"]["ch4_biogenic"]
     gwp_n2o = params["ipcc_gwp_ar6"]["n2o"]
@@ -98,6 +99,7 @@ def calculate_baseline_emissions(
             
             # Head count needed for zone share
             head_count = (zone_volume_kg * share) / annual_animal_yield_kg
+            total_herd_count += head_count
             
             # Methane & Nitrous Oxide per head
             enteric_ch4 = params["scope3_farm_baseline"]["enteric_ch4_kg_per_head_yr"][animal_type] * head_count
@@ -111,6 +113,10 @@ def calculate_baseline_emissions(
     total_emissions_kg_co2e = scope1_kg_co2e + scope2_kg_co2e + scope3_total_kg_co2e
     
     carbon_intensity = total_emissions_kg_co2e / annual_volume_kg
+    daily_volume_liters = daily_volume_liters
+    average_daily_yield_liters = (
+        daily_volume_liters / total_herd_count if total_herd_count else 0.0
+    )
     
     return {
         "annual_milk_kg": annual_volume_kg,
@@ -119,5 +125,7 @@ def calculate_baseline_emissions(
         "scope3_tco2e": scope3_total_kg_co2e / 1000.0,
         "total_tco2e": total_emissions_kg_co2e / 1000.0,
         "carbon_intensity_kg_co2e_per_kg_milk": carbon_intensity,
-        "scope3_share_pct": (scope3_total_kg_co2e / total_emissions_kg_co2e) * 100.0
+        "scope3_share_pct": (scope3_total_kg_co2e / total_emissions_kg_co2e) * 100.0,
+        "baseline_active_herd_count": total_herd_count,
+        "average_daily_yield_liters": average_daily_yield_liters
     }

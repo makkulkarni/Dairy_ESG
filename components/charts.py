@@ -46,12 +46,13 @@ def create_abatement_waterfall(baseline_tco2e: float, mitigation_results: Dict[s
     fig = go.Figure(go.Waterfall(
         name="Abatement Pathway",
         orientation="v",
-        measure=["absolute", "relative", "relative", "relative", "total"],
+        measure=["absolute", "relative", "relative", "relative", "relative", "total"],
         x=[
             "Baseline Footprint",
             "Ration Balancing",
             "Solar BMCs",
             "Manure Digesters",
+            "Herd Health & Genetics",
             "Target Footprint"
         ],
         textposition="outside",
@@ -60,6 +61,7 @@ def create_abatement_waterfall(baseline_tco2e: float, mitigation_results: Dict[s
             f"-{mitigation_results['ration_abatement_tco2e']:,.0f}",
             f"-{mitigation_results['solar_abatement_tco2e']:,.0f}",
             f"-{mitigation_results['digester_abatement_tco2e']:,.0f}",
+            f"-{mitigation_results['genetics_health_abatement_tco2e']:,.0f}",
             f"{mitigation_results['mitigated_total_tco2e']:,.0f}"
         ],
         y=[
@@ -67,6 +69,7 @@ def create_abatement_waterfall(baseline_tco2e: float, mitigation_results: Dict[s
             -mitigation_results["ration_abatement_tco2e"],
             -mitigation_results["solar_abatement_tco2e"],
             -mitigation_results["digester_abatement_tco2e"],
+            -mitigation_results["genetics_health_abatement_tco2e"],
             mitigation_results["mitigated_total_tco2e"]
         ],
         connector={"line": {"color": "#CBD5E0"}},
