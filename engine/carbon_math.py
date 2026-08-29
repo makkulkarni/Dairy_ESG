@@ -4,7 +4,48 @@ Calculates baseline enterprise carbon intensity (kg CO2e / kg milk).
 """
 
 from typing import Dict, Any
+def calculate_abatement(
+    baseline_footprint_tco2e,
+    ration_adoption_pct,
+    solar_adoption_pct,
+    manure_adoption_pct,
+    genetics_adoption_pct=0.0  # Optional 4th lever
+):
+    # --- 1. RATION BALANCING & METHANE INHIBITORS ---
+    # Direct enteric reduction + herd size reduction via yield improvement
+    # Increasing efficiency factor from ~11% to ~28% total combined effect at 100% adoption
+    max_ration_abatement_factor = 0.28  
+    ration_abatement = baseline_footprint_tco2e * (ration_adoption_pct / 100.0) * max_ration_abatement_factor
 
+    # --- 2. COMMUNITY MANURE DIGESTERS ---
+    # Manure represents ~12-15% of baseline emissions. 
+    # Methane capture efficiency in digesters is 70-80%.
+    max_manure_abatement_factor = 0.12  
+    manure_abatement = baseline_footprint_tco2e * (manure_adoption_pct / 100.0) * max_manure_abatement_factor
+
+    # --- 3. VILLAGE BMC SOLARIZATION & ENERGY EFFICIENCY ---
+    # Grid/Diesel power is ~2.2% of baseline footprint.
+    max_solar_abatement_factor = 0.022  
+    solar_abatement = baseline_footprint_tco2e * (solar_adoption_pct / 100.0) * max_solar_abatement_factor
+
+    # --- 4. HERD HEALTH & GENETICS (NEW 4TH LEVER) ---
+    max_genetics_abatement_factor = 0.08
+    genetics_abatement = baseline_footprint_tco2e * (genetics_adoption_pct / 100.0) * max_genetics_abatement_factor
+
+    # Total Abatement
+    total_abatement = ration_abatement + manure_abatement + solar_abatement + genetics_abatement
+    remaining_footprint = baseline_footprint_tco2e - total_abatement
+    pct_reduction = (total_abatement / baseline_footprint_tco2e) * 100.0
+
+    return {
+        "ration_abatement": ration_abatement,
+        "solar_abatement": solar_abatement,
+        "manure_abatement": manure_abatement,
+        "genetics_abatement": genetics_abatement,
+        "total_abatement": total_abatement,
+        "remaining_footprint": remaining_footprint,
+        "pct_reduction": pct_reduction
+    }
 
 def calculate_baseline_emissions(
     daily_volume_liters: float,
