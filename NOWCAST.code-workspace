@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../../../Data/Re_Energy/NOWCAST"
+		},
+		{
+			"name": "Dairy_ESG",
+			"path": "."
+		}
+	],
+	"settings": {
+		"python-envs.defaultEnvManager": "ms-python.python:system"
+	}
+}
