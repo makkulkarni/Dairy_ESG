@@ -1,0 +1,2280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enterprise Dairy Decarbonization & Climate Risk Dashboard</title>
+  <meta name="description" content="Interactive decision support dashboard for dairy baseline GHG accounting, IPCC climate stress-testing, and 2030 decarbonization pathway simulation.">
+  
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Plotly.js CDN for interactive charts -->
+  <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+
+  <style>
+    :root {
+      --bg-gradient: radial-gradient(circle at 10% 20%, #0d1b2a 0%, #070d18 100%);
+      --surface-bg: rgba(18, 30, 49, 0.85);
+      --surface-border: rgba(255, 255, 255, 0.08);
+      --surface-hover: rgba(30, 48, 77, 0.9);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      
+      --brand-primary: #38bdf8;
+      --brand-accent: #0ea5e9;
+      --brand-navy: #0f172a;
+      
+      --color-success: #10b981;
+      --color-success-bg: rgba(16, 185, 129, 0.12);
+      --color-warning: #f59e0b;
+      --color-warning-bg: rgba(245, 158, 11, 0.12);
+      --color-danger: #ef4444;
+      --color-danger-bg: rgba(239, 68, 68, 0.12);
+      --color-info: #6366f1;
+      --color-info-bg: rgba(99, 102, 241, 0.12);
+
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+      --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.35);
+      --shadow-lg: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+      --transition-base: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    [data-theme="light"] {
+      --bg-gradient: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+      --surface-bg: rgba(255, 255, 255, 0.95);
+      --surface-border: rgba(226, 232, 240, 0.9);
+      --surface-hover: rgba(248, 250, 252, 1);
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --brand-primary: #0284c7;
+      --brand-accent: #0369a1;
+      --color-success-bg: rgba(16, 185, 129, 0.15);
+      --color-warning-bg: rgba(245, 158, 11, 0.15);
+      --color-danger-bg: rgba(239, 68, 68, 0.15);
+      --color-info-bg: rgba(99, 102, 241, 0.15);
+      --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.5;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    /* Presentation mode adjustments */
+    body.presentation-mode .sidebar {
+      display: none !important;
+    }
+    body.presentation-mode .main-content {
+      margin-left: 0 !important;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    body.presentation-mode .top-nav {
+      padding: 10px 30px;
+    }
+
+    /* App Shell */
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar controls */
+    .sidebar {
+      width: 320px;
+      background: var(--surface-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-right: 1px solid var(--surface-border);
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      flex-shrink: 0;
+      overflow-y: auto;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .brand-box {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--surface-border);
+    }
+
+    .brand-icon {
+      font-size: 34px;
+      filter: drop-shadow(0 4px 8px rgba(56, 189, 248, 0.3));
+    }
+
+    .brand-title {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 1.15rem;
+      line-height: 1.25;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+    }
+
+    .brand-subtitle {
+      font-size: 0.75rem;
+      color: var(--brand-primary);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .group-label {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .control-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: var(--transition-base);
+    }
+
+    .control-card:hover {
+      border-color: rgba(56, 189, 248, 0.4);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .control-val {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--brand-primary);
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--brand-primary);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+
+    .num-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .num-input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--surface-border);
+      color: var(--text-primary);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+      transition: var(--transition-base);
+    }
+
+    .num-input:focus {
+      border-color: var(--brand-primary);
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+    }
+
+    .reset-btn {
+      width: 100%;
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--surface-border);
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition-base);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .reset-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+      border-color: var(--brand-primary);
+    }
+
+    /* Main Content Area */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      overflow-y: auto;
+    }
+
+    /* Top Navigation Header */
+    .top-nav {
+      background: var(--surface-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--surface-border);
+      padding: 16px 36px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+
+    .nav-title-group h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-title-group p {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-action {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--surface-border);
+      color: var(--text-primary);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition-base);
+    }
+
+    .btn-action:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--brand-primary);
+      color: var(--brand-primary);
+    }
+
+    .btn-action.highlight {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      border: none;
+      color: white;
+      box-shadow: 0 4px 12px rgba(14, 165, 233, 0.35);
+    }
+
+    .btn-action.highlight:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(14, 165, 233, 0.5);
+    }
+
+    /* Tabs Bar */
+    .tabs-bar {
+      padding: 0 36px;
+      background: var(--surface-bg);
+      border-bottom: 1px solid var(--surface-border);
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      padding: 14px 20px;
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      color: var(--text-secondary);
+      font-family: 'Outfit', sans-serif;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition-base);
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .tab-btn.active {
+      color: var(--brand-primary);
+      border-bottom-color: var(--brand-primary);
+    }
+
+    /* Page View Container */
+    .view-content {
+      padding: 32px 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      max-width: 1440px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .tab-pane {
+      display: none;
+      flex-direction: column;
+      gap: 28px;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .tab-pane.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* KPI Grid & Cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+    }
+
+    .kpi-card {
+      background: var(--surface-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-md);
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition-base);
+    }
+
+    .kpi-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--brand-primary);
+      opacity: 0.8;
+    }
+
+    .kpi-card.emerald::before { background: var(--color-success); }
+    .kpi-card.amber::before { background: var(--color-warning); }
+    .kpi-card.crimson::before { background: var(--color-danger); }
+    .kpi-card.indigo::before { background: var(--color-info); }
+
+    .kpi-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+      border-color: rgba(56, 189, 248, 0.3);
+    }
+
+    .kpi-label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .kpi-value {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.1rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+    }
+
+    .kpi-sub {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Layout Grids */
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .grid-3col {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 1024px) {
+      .grid-2col, .grid-3col {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        width: 280px;
+      }
+    }
+
+    /* Cards & Containers */
+    .panel {
+      background: var(--surface-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--surface-border);
+      padding-bottom: 14px;
+    }
+
+    .panel-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    /* Strategic comparison box (Feed solution) */
+    .solution-comparison-box {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .comp-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .comp-card {
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      border: 1px solid transparent;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .comp-card.negative {
+      background: var(--color-danger-bg);
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .comp-card.positive {
+      background: var(--color-success-bg);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .comp-card-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .comp-card.negative .comp-card-title { color: #f87171; }
+    .comp-card.positive .comp-card-title { color: #34d399; }
+
+    .comp-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .comp-list li {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .comp-list strong {
+      color: var(--text-primary);
+    }
+
+    /* Executive Callout Alert */
+    .executive-alert {
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(99, 102, 241, 0.15) 100%);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: var(--radius-sm);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 0.95rem;
+      color: var(--text-primary);
+    }
+
+    .executive-alert-icon {
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+
+    /* Source Pillars Cards */
+    .source-pillar {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+    }
+
+    .pillar-share {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 1.15rem;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--brand-primary);
+    }
+
+    .pillar-share.dominant {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    .source-pillar h3 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .source-pillar p {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* Target Status Badge */
+    .target-status-box {
+      border-radius: var(--radius-sm);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 1.05rem;
+      transition: var(--transition-base);
+    }
+
+    .target-status-box.met {
+      background: var(--color-success-bg);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+    }
+
+    .target-status-box.shortfall {
+      background: var(--color-warning-bg);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: #fbbf24;
+    }
+
+    /* Sliders inside Tab 2 */
+    .lever-control-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .lever-control-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .lever-title {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .lever-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .lever-val {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--brand-primary);
+    }
+
+    /* Scenario Pills */
+    .scenario-pill-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .scenario-pill {
+      flex: 1;
+      min-width: 140px;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: var(--transition-base);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .scenario-pill:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-primary);
+    }
+
+    .scenario-pill.active {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--brand-primary);
+      color: var(--brand-primary);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+    }
+
+    .scenario-pill .badge-temp {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .scenario-pill.active .badge-temp {
+      color: var(--text-primary);
+    }
+
+    /* Tables */
+    .custom-table-wrapper {
+      overflow-x: auto;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--surface-border);
+    }
+
+    table.custom-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      text-align: left;
+    }
+
+    table.custom-table th {
+      background: rgba(255, 255, 255, 0.04);
+      padding: 12px 16px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--surface-border);
+    }
+
+    table.custom-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--surface-border);
+      color: var(--text-primary);
+    }
+
+    table.custom-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    table.custom-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Modal for PPT Linking Instructions */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-box {
+      background: var(--surface-bg);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-lg);
+      width: 90%;
+      max-width: 650px;
+      padding: 30px;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: relative;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .modal-close:hover {
+      color: var(--text-primary);
+    }
+
+    .step-item {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--brand-primary);
+      color: #0d1b2a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+
+    .code-snippet {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: #38bdf8;
+      word-break: break-all;
+      margin-top: 6px;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+    }
+
+    /* Tooltip / Notice */
+    .notice-bar {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: var(--radius-sm);
+      border-left: 3px solid var(--brand-primary);
+    }
+
+    /* Print styles */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+      .sidebar, .top-nav, .tabs-bar, .modal-backdrop {
+        display: none !important;
+      }
+      .tab-pane {
+        display: flex !important;
+        page-break-after: always;
+      }
+      .panel, .kpi-card {
+        border: 1px solid #ddd !important;
+        background: #fff !important;
+        box-shadow: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+  <!-- SIDEBAR: Enterprise Controls -->
+  <aside class="sidebar" id="appSidebar">
+    <div class="brand-box">
+      <div class="brand-icon">🥛</div>
+      <div>
+        <div class="brand-title">Dairy Decarb ESG</div>
+        <div class="brand-subtitle">Executive Simulator</div>
+      </div>
+    </div>
+
+    <!-- Group 1: Procurement Scale -->
+    <div class="control-group">
+      <div class="group-label">🏢 Enterprise Procurement Scale</div>
+      
+      <div class="control-card">
+        <div class="control-header">
+          <span>Daily Volume</span>
+          <span class="control-val" id="valDailyVolume">20.0M L/day</span>
+        </div>
+        <input type="range" id="inputDailyVolume" min="5" max="50" step="1" value="20">
+        <div style="font-size:0.75rem; color:var(--text-muted);">Procured across West, North & South hubs</div>
+      </div>
+
+      <div class="control-card">
+        <div class="control-header">
+          <span>2030 Carbon Target</span>
+          <span class="control-val" id="valTargetReduction">30% Drop</span>
+        </div>
+        <input type="range" id="inputTargetReduction" min="10" max="50" step="5" value="30">
+        <div style="font-size:0.75rem; color:var(--text-muted);">Relative to baseline emission intensity</div>
+      </div>
+    </div>
+
+    <!-- Group 2: Emission Factor Overrides -->
+    <div class="control-group">
+      <div class="group-label">⚡ Emission Factor Overrides</div>
+      
+      <div class="control-card">
+        <div class="control-header">
+          <span>Grid Electricity</span>
+        </div>
+        <div class="num-input-wrap">
+          <input type="number" id="inputGridEF" class="num-input" min="0.10" max="1.50" step="0.01" value="0.716">
+          <span style="font-size:0.75rem; color:var(--text-muted); white-space:nowrap;">kg/kWh</span>
+        </div>
+      </div>
+
+      <div class="control-card">
+        <div class="control-header">
+          <span>Tanker Logistics</span>
+        </div>
+        <div class="num-input-wrap">
+          <input type="number" id="inputTransitEF" class="num-input" min="0.01" max="0.50" step="0.01" value="0.110">
+          <span style="font-size:0.75rem; color:var(--text-muted); white-space:nowrap;">kg/ton-km</span>
+        </div>
+      </div>
+    </div>
+
+    <button class="reset-btn" id="btnResetControls">
+      🔄 Reset to Default Parameters
+    </button>
+
+    <div class="notice-bar">
+      📌 <strong>Presentation Tip:</strong> Sliders recalculate all calculations and charts dynamically with sub-5ms response time.
+    </div>
+  </aside>
+
+  <!-- MAIN VIEW CONTAINER -->
+  <main class="main-content">
+    <!-- Top Nav -->
+    <header class="top-nav">
+      <div class="nav-title-group">
+        <h1>🥛 Enterprise Dairy Decarbonization & Risk Dashboard</h1>
+        <p>Decision support tool for Scope 1, 2, & 3 GHG emissions, IPCC climate stress-testing, and 2030 target simulation.</p>
+      </div>
+
+      <div class="nav-actions">
+        <button class="btn-action highlight" id="btnPptGuide">
+          📊 PPT Linking Guide
+        </button>
+        <button class="btn-action" id="btnPresentationToggle">
+          🖥️ Presentation View
+        </button>
+        <button class="btn-action" id="btnThemeToggle">
+          🌓 Theme
+        </button>
+      </div>
+    </header>
+
+    <!-- Tabs Bar -->
+    <nav class="tabs-bar">
+      <button class="tab-btn active" data-tab="tab-strategy">
+        📋 Strategy & Storytelling
+      </button>
+      <button class="tab-btn" data-tab="tab-baseline">
+        📊 Baseline Footprint
+      </button>
+      <button class="tab-btn" data-tab="tab-simulator">
+        🌱 Decarbonization Simulator
+      </button>
+      <button class="tab-btn" data-tab="tab-climate">
+        ☀️ IPCC Climate Stress-Test
+      </button>
+    </nav>
+
+    <!-- VIEW CONTENT -->
+    <div class="view-content">
+
+      <!-- ============================================================ -->
+      <!-- TAB 1: STRATEGY & EXECUTIVE STORYTELLING                      -->
+      <!-- ============================================================ -->
+      <section class="tab-pane active" id="tab-strategy">
+        
+        <!-- Top Executive KPIs -->
+        <div class="kpi-grid">
+          <div class="kpi-card emerald">
+            <div class="kpi-label">Daily Milk Target</div>
+            <div class="kpi-value" id="kpiTargetVolume">20.0M L</div>
+            <div class="kpi-sub" id="kpiAnnualProcessed">~7.52M kg processed daily</div>
+          </div>
+          <div class="kpi-card indigo">
+            <div class="kpi-label">Active Herd Needed</div>
+            <div class="kpi-value" id="kpiActiveHerd">2,885,417</div>
+            <div class="kpi-sub">Across regional cooperatives</div>
+          </div>
+          <div class="kpi-card amber">
+            <div class="kpi-label">Annual Methane Output</div>
+            <div class="kpi-value" id="kpiAnnualMethane">173,125 T</div>
+            <div class="kpi-sub">~60 kg CH₄ per animal/year</div>
+          </div>
+          <div class="kpi-card crimson">
+            <div class="kpi-label">2030 Target Intensity</div>
+            <div class="kpi-value" id="kpiTargetIntensity">0.625</div>
+            <div class="kpi-sub" id="kpiTargetDropDesc">kg CO₂e/kg (30% reduction)</div>
+          </div>
+        </div>
+
+        <!-- 3 Sources of Carbon -->
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">🔍 Where Does Our Carbon Footprint Come From?</div>
+              <div class="panel-subtitle">Operational reality: Over 97% of carbon resides on farms, not within processing factory walls.</div>
+            </div>
+          </div>
+
+          <div class="grid-3col">
+            <div class="source-pillar">
+              <span class="pillar-share">~0.7%</span>
+              <h3>1. Factory & Generator Fuel</h3>
+              <p><strong>Direct Operational Control (Scope 1):</strong> Diesel burned on-site in backup generators at rural collection centers and plant heating boilers. Consumes ~0.005 Liters diesel per kg milk.</p>
+            </div>
+            <div class="source-pillar">
+              <span class="pillar-share">~1.5%</span>
+              <h3>2. Purchased Grid Power</h3>
+              <p><strong>Factory Operations (Scope 2):</strong> Electricity purchased to run milk chillers, pasteurizers, and cold storage chains. Consumes ~0.04 kWh per kg milk.</p>
+            </div>
+            <div class="source-pillar">
+              <span class="pillar-share dominant">~97.8%</span>
+              <h3>3. Cows & Upstream Farm</h3>
+              <p><strong>Upstream Value Chain (Scope 3):</strong> Cow enteric methane burps, manure management, and tanker logistics. Generates ~1.82 kg CO₂e per kg milk.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- The Herd Math & Feed Solution Story -->
+        <div class="solution-comparison-box">
+          <div class="panel-header" style="border:none; padding:0;">
+            <div>
+              <div class="panel-title">💡 The Breakthrough: How Better Cattle Feed Cuts the Herd & Methane</div>
+              <div class="panel-subtitle">
+                Cows spend 75% of baseline energy on basal metabolism (survival). Balanced feed increases yield from 6 to 10 L/day, fulfilling the same milk quota with dramatically fewer animals.
+              </div>
+            </div>
+          </div>
+
+          <div class="comp-cards">
+            <div class="comp-card negative">
+              <div class="comp-card-title">⚠️ Current Baseline (Unbalanced Feed)</div>
+              <ul class="comp-list">
+                <li><span>•</span> <strong>Daily Milk Yield:</strong> 6 Liters / cow / day</li>
+                <li><span>•</span> <strong>Active Herd Needed:</strong> 333,333 Cows (per 2M L)</li>
+                <li><span>•</span> <strong>Enteric Burp Methane:</strong> 20,000 Tonnes / yr</li>
+                <li><span>•</span> <strong>Status:</strong> Massive herd required; higher overhead & methane.</li>
+              </ul>
+            </div>
+
+            <div class="comp-card positive">
+              <div class="comp-card-title">✅ Improved Feed Scenario (Balanced Nutrition)</div>
+              <ul class="comp-list">
+                <li><span>•</span> <strong>Daily Milk Yield:</strong> 10 Liters / cow / day (+66%)</li>
+                <li><span>•</span> <strong>Active Herd Needed:</strong> 200,000 Cows (per 2M L)</li>
+                <li><span>•</span> <strong>Enteric Burp Methane:</strong> 12,000 Tonnes / yr (-40%)</li>
+                <li><span>•</span> <strong>Status:</strong> Fulfills exact same quota with 133,333 FEWER cows!</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="executive-alert">
+            <div class="executive-alert-icon">🔑</div>
+            <div>
+              <strong>Key Takeaway for Executive Leadership:</strong> Improving smallholder feed rations does not merely suppress enteric methane per burp—it reduces the absolute animal population required to meet commercial milk delivery quotas.
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 Core Actionable Decarbonization Levers -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🚀 Core Decarbonization Levers Toward 2030</div>
+          </div>
+          <div class="grid-3col">
+            <div class="control-card">
+              <h4 style="color:var(--brand-primary); font-size:0.95rem; margin-bottom:4px;">1. Feed Rationing & Additives</h4>
+              <p style="font-size:0.83rem; color:var(--text-secondary);">Distributes dietary supplements and fiber-to-protein optimization software to smallholder farmers. Cuts enteric methane by up to 15-45% and improves yield.</p>
+            </div>
+            <div class="control-card">
+              <h4 style="color:var(--brand-primary); font-size:0.95rem; margin-bottom:4px;">2. Village BMC Solarization</h4>
+              <p style="font-size:0.83rem; color:var(--text-secondary);">Installs rooftop solar PV with battery storage at village Bulk Milk Cooling centers, displacing up to 60% of Scope 2 grid power and backup diesel generation.</p>
+            </div>
+            <div class="control-card">
+              <h4 style="color:var(--brand-primary); font-size:0.95rem; margin-bottom:4px;">3. Community Manure Digesters</h4>
+              <p style="font-size:0.83rem; color:var(--text-secondary);">Builds cooperative bio-gas dome covers over manure lagoons to capture escaping methane for clean cooking fuel and organic bio-fertilizer.</p>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- TAB 2: BASELINE FOOTPRINT & REGIONAL DATA                    -->
+      <!-- ============================================================ -->
+      <section class="tab-pane" id="tab-baseline">
+        
+        <div class="kpi-grid">
+          <div class="kpi-card indigo">
+            <div class="kpi-label">Total Enterprise Footprint</div>
+            <div class="kpi-value" id="baseTotalTco2e">6,712,108</div>
+            <div class="kpi-sub">Annual absolute tCO₂e</div>
+          </div>
+          <div class="kpi-card emerald">
+            <div class="kpi-label">Baseline Carbon Intensity</div>
+            <div class="kpi-value" id="baseIntensity">0.893</div>
+            <div class="kpi-sub">kg CO₂e per kg milk</div>
+          </div>
+          <div class="kpi-card amber">
+            <div class="kpi-label">Upstream Scope 3 Share</div>
+            <div class="kpi-value" id="baseScope3Share">97.8%</div>
+            <div class="kpi-sub">On-farm smallholder emissions</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Annual Raw Milk Processed</div>
+            <div class="kpi-value" id="baseAnnualVolume">7,519M kg</div>
+            <div class="kpi-sub">Based on 1.03 kg/L milk density</div>
+          </div>
+        </div>
+
+        <div class="grid-2col">
+          <!-- Donut Chart -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">🍩 GHG Footprint Breakdown by Scope</div>
+            </div>
+            <div id="chartScopeDonut" style="width:100%; height:320px;"></div>
+          </div>
+
+          <!-- Regional Procurement Table -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">📍 Regional Sourcing Distribution</div>
+            </div>
+            <div class="custom-table-wrapper">
+              <table class="custom-table" id="regionalTable">
+                <thead>
+                  <tr>
+                    <th>Procurement Zone</th>
+                    <th>Volume Share</th>
+                    <th>Intensity (kg/kg)</th>
+                    <th>Herd Mix</th>
+                    <th>Avg Transit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- GHG Scope Methodology Cards -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">📖 GHG Protocol Accounting Boundaries & Methodology</div>
+          </div>
+          <div class="grid-3col">
+            <div class="control-card">
+              <h4 style="color:#38bdf8;">Scope 1 (Direct Fuel)</h4>
+              <p style="font-size:0.82rem; color:var(--text-secondary); margin-top:4px;">
+                Direct thermal fuel combustion and diesel backup generators at chilling centers (~0.005 L/kg milk at 2.68 kg CO₂e/L).
+              </p>
+              <div style="margin-top:8px; font-weight:700; font-size:1.1rem; color:var(--text-primary);" id="scope1ValDisplay">
+                -- tCO₂e
+              </div>
+            </div>
+            <div class="control-card">
+              <h4 style="color:#818cf8;">Scope 2 (Purchased Electricity)</h4>
+              <p style="font-size:0.82rem; color:var(--text-secondary); margin-top:4px;">
+                Grid power consumed by pasteurizers, refrigeration units, and bulk storage chillers (~0.04 kWh/kg milk at grid factor).
+              </p>
+              <div style="margin-top:8px; font-weight:700; font-size:1.1rem; color:var(--text-primary);" id="scope2ValDisplay">
+                -- tCO₂e
+              </div>
+            </div>
+            <div class="control-card">
+              <h4 style="color:#f472b6;">Scope 3 (Upstream Value Chain)</h4>
+              <p style="font-size:0.82rem; color:var(--text-secondary); margin-top:4px;">
+                IPCC Tier 1/2 enteric methane, manure storage, feed cultivation nitrous oxide, and insulated tanker transport logistics.
+              </p>
+              <div style="margin-top:8px; font-weight:700; font-size:1.1rem; color:var(--text-primary);" id="scope3ValDisplay">
+                -- tCO₂e
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- TAB 3: DECARBONIZATION SIMULATOR                             -->
+      <!-- ============================================================ -->
+      <section class="tab-pane" id="tab-simulator">
+        
+        <div class="grid-2col">
+          <!-- Left Column: Sliders -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">🎛️ Decarbonization Lever Adoption Sliders</div>
+              <div class="panel-subtitle">Simulate multi-lever mitigation combinations to hit 2030 targets</div>
+            </div>
+
+            <div class="lever-control-card">
+              <div class="lever-control-header">
+                <div>
+                  <div class="lever-title">1. Ration Balancing & Dietary Additives</div>
+                  <div class="lever-desc">Improves nutrition, reduces enteric burps, raises cow daily yield</div>
+                </div>
+                <div class="lever-val" id="valLeverRation">40%</div>
+              </div>
+              <input type="range" id="inputLeverRation" min="0" max="100" step="5" value="40">
+            </div>
+
+            <div class="lever-control-card">
+              <div class="lever-control-header">
+                <div>
+                  <div class="lever-title">2. Village BMC Solarization</div>
+                  <div class="lever-desc">Rooftop solar PV displacing grid and diesel power at cooling points</div>
+                </div>
+                <div class="lever-val" id="valLeverSolar">60%</div>
+              </div>
+              <input type="range" id="inputLeverSolar" min="0" max="100" step="5" value="60">
+            </div>
+
+            <div class="lever-control-card">
+              <div class="lever-control-header">
+                <div>
+                  <div class="lever-title">3. Community Manure Digesters</div>
+                  <div class="lever-desc">Biogas methane capture systems from smallholder manure pits</div>
+                </div>
+                <div class="lever-val" id="valLeverManure">25%</div>
+              </div>
+              <input type="range" id="inputLeverManure" min="0" max="100" step="5" value="25">
+            </div>
+
+            <div class="lever-control-card">
+              <div class="lever-control-header">
+                <div>
+                  <div class="lever-title">4. Herd Health, Genetics & Fertility</div>
+                  <div class="lever-desc">Selective artificial insemination & veterinary disease suppression</div>
+                </div>
+                <div class="lever-val" id="valLeverGenetics">45%</div>
+              </div>
+              <input type="range" id="inputLeverGenetics" min="0" max="100" step="5" value="45">
+            </div>
+          </div>
+
+          <!-- Right Column: Status Banner & Waterfall Chart -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">🎯 Decarbonization Pathway Trajectory</div>
+            </div>
+
+            <!-- Dynamic Target Status Card -->
+            <div class="target-status-box met" id="targetStatusBox">
+              <div id="targetStatusText">🎯 2030 Target Met! Achieved 31.2% Reduction</div>
+              <span style="font-size:1.3rem;">🚀</span>
+            </div>
+
+            <!-- Waterfall Plotly Chart -->
+            <div id="chartWaterfall" style="width:100%; height:340px;"></div>
+          </div>
+        </div>
+
+        <!-- 4 Impact Summary KPI Cards -->
+        <div class="kpi-grid">
+          <div class="kpi-card emerald">
+            <div class="kpi-label">Abated Carbon Volume</div>
+            <div class="kpi-value" id="resAbatedVolume">2,096,400</div>
+            <div class="kpi-sub">Annual tCO₂e eliminated</div>
+          </div>
+          <div class="kpi-card indigo">
+            <div class="kpi-label">New Carbon Intensity</div>
+            <div class="kpi-value" id="resNewIntensity">0.614</div>
+            <div class="kpi-sub">kg CO₂e per kg milk</div>
+          </div>
+          <div class="kpi-card amber">
+            <div class="kpi-label">Net Intensity Reduction</div>
+            <div class="kpi-value" id="resPctAchieved">-31.2%</div>
+            <div class="kpi-sub">Relative to enterprise baseline</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Active Herd After Feed</div>
+            <div class="kpi-value" id="resMitigatedHerd">2,569,820</div>
+            <div class="kpi-sub" id="resHerdReductionSub">315,597 fewer cows needed</div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- TAB 4: IPCC CLIMATE STRESS-TEST                              -->
+      <!-- ============================================================ -->
+      <section class="tab-pane" id="tab-climate">
+        
+        <div class="grid-2col">
+          <!-- Scenario selector & info -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">☀️ Select IPCC Shared Socioeconomic Pathway (SSP)</div>
+              <div class="panel-subtitle">Stress-test heat-stress yield degradation against transport trade-offs</div>
+            </div>
+
+            <div class="scenario-pill-group">
+              <button class="scenario-pill" data-scenario="baseline">
+                <div>Baseline Climate</div>
+                <div class="badge-temp">+0.0°C | THI 72.0</div>
+              </button>
+              <button class="scenario-pill" data-scenario="ssp1_26">
+                <div>SSP1-2.6</div>
+                <div class="badge-temp">+1.5°C | THI 75.2</div>
+              </button>
+              <button class="scenario-pill active" data-scenario="ssp2_45">
+                <div>SSP2-4.5</div>
+                <div class="badge-temp">+2.7°C | THI 78.6</div>
+              </button>
+              <button class="scenario-pill" data-scenario="ssp5_85">
+                <div>SSP5-8.5</div>
+                <div class="badge-temp">+4.4°C | THI 83.1</div>
+              </button>
+            </div>
+
+            <div class="comp-card negative" style="margin-top:10px;" id="scenarioInfoBox">
+              <div class="comp-card-title">⚠️ Temperature-Humidity Index (THI) Impact</div>
+              <p style="font-size:0.85rem; color:var(--text-secondary);" id="scenarioDescription">
+                Under SSP2-4.5 (+2.7°C warming), average summer THI reaches 78.6, exceeding the critical comfort ceiling of 72.0. High-producing crossbred cows suffer a 16.0% milk yield crash, while resilient buffaloes experience an 8.1% drop.
+              </p>
+            </div>
+
+            <div class="executive-alert">
+              <div class="executive-alert-icon">📈</div>
+              <div>
+                <strong>The Herd Expansion Trap:</strong> When cow daily yield drops due to extreme heat stress, cooperatives must recruit extra livestock to fulfill contracts, causing a massive surge in enteric methane and carbon intensity.
+              </div>
+            </div>
+          </div>
+
+          <!-- Climate Yield Loss Bar Chart -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">📊 Summer Yield Loss Penalty by Livestock Breed</div>
+            </div>
+            <div id="chartClimateYield" style="width:100%; height:320px;"></div>
+          </div>
+        </div>
+
+        <!-- 4 Climate Stress-Test Output Metrics -->
+        <div class="kpi-grid">
+          <div class="kpi-card crimson">
+            <div class="kpi-label">Average Yield Penalty</div>
+            <div class="kpi-value" id="riskYieldLoss">12.5%</div>
+            <div class="kpi-sub">Weighted across regional herd mix</div>
+          </div>
+          <div class="kpi-card amber">
+            <div class="kpi-label">Herd Expansion Needed</div>
+            <div class="kpi-value" id="riskHerdExpansion">+14.3%</div>
+            <div class="kpi-sub">To maintain daily milk volume</div>
+          </div>
+          <div class="kpi-card crimson">
+            <div class="kpi-label">Escalated Carbon Intensity</div>
+            <div class="kpi-value" id="riskEscalatedIntensity">1.018</div>
+            <div class="kpi-sub">kg CO₂e per kg milk</div>
+          </div>
+          <div class="kpi-card crimson">
+            <div class="kpi-label">Intensity Escalation</div>
+            <div class="kpi-value" id="riskIntensityIncrease">+14.0%</div>
+            <div class="kpi-sub">Above baseline level</div>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL: HOW TO LINK IN POWERPOINT                            -->
+<!-- ============================================================ -->
+<div class="modal-backdrop" id="modalPpt">
+  <div class="modal-box">
+    <button class="modal-close" id="modalCloseBtn">&times;</button>
+    
+    <div style="display:flex; align-items:center; gap:12px;">
+      <span style="font-size:32px;">📊</span>
+      <div>
+        <h2 style="font-family:'Outfit',sans-serif; font-size:1.3rem;">How to Link this Dashboard in PowerPoint</h2>
+        <p style="font-size:0.85rem; color:var(--text-secondary);">Interactive presentations with live recalculation during meetings</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div>
+          <strong>Save/Copy Dashboard Path:</strong>
+          <div style="font-size:0.85rem; color:var(--text-secondary);">This file is fully standalone. Copy its local path:</div>
+          <div class="code-snippet" id="snippetPath">dashboard.html</div>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div>
+          <strong>Create an Action Button in PowerPoint:</strong>
+          <div style="font-size:0.85rem; color:var(--text-secondary);">In PowerPoint, insert a shape (e.g. rounded rectangle labeled <em>"Launch Interactive ESG Simulator"</em>).</div>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div>
+          <strong>Add Hyperlink / Action:</strong>
+          <div style="font-size:0.85rem; color:var(--text-secondary);">Right-click the shape &rarr; <strong>Link</strong> (or <strong>Action &rarr; Hyperlink to</strong>) &rarr; Select <strong>Existing File or Web Page</strong> &rarr; browse to <code>dashboard.html</code>.</div>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div>
+          <strong>Present Seamlessly:</strong>
+          <div style="font-size:0.85rem; color:var(--text-secondary);">During your slideshow, click the button to instantly launch this interactive dashboard. Toggle <strong>Presentation View</strong> for a clean, full-screen slide appearance!</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-action highlight" style="align-self:flex-end;" id="modalGotItBtn">
+      Got It &amp; Close
+    </button>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- EMBEDDED ANALYTICAL ENGINE & REACTIVE CONTROLLER             -->
+<!-- ============================================================ -->
+<script>
+/**
+ * PURE JAVASCRIPT ANALYTICAL ENGINE
+ * Replicates carbon_math.py, mitigation.py, and climate_risk.py
+ */
+
+const CONFIG = {
+  enterprise_defaults: {
+    daily_processing_volume_liters: 20000000,
+    target_reduction_pct: 30.0,
+    target_year: 2030,
+    grid_emission_factor_kg_co2e_kwh: 0.716,
+    diesel_emission_factor_kg_co2e_liter: 2.68,
+    tanker_transit_factor_kg_co2e_tonkm: 0.11
+  },
+  ipcc_gwp_ar6: {
+    co2: 1.0,
+    ch4_biogenic: 28.0,
+    n2o: 265.0
+  },
+  scope3_farm_baseline: {
+    enteric_ch4_kg_per_head_yr: {
+      crossbred_cow: 65.0,
+      buffalo: 58.0,
+      indigenous_cow: 42.0
+    },
+    manure_ch4_kg_per_head_yr: {
+      crossbred_cow: 5.5,
+      buffalo: 4.5,
+      indigenous_cow: 3.0
+    },
+    feed_n2o_kg_per_head_yr: {
+      crossbred_cow: 1.8,
+      buffalo: 1.5,
+      indigenous_cow: 1.0
+    },
+    average_milk_yield_liters_per_day: {
+      crossbred_cow: 9.5,
+      buffalo: 6.8,
+      indigenous_cow: 3.2
+    }
+  },
+  mitigation_max_efficiencies: {
+    ration_balancing_max_enteric_reduction: 0.45,
+    ration_balancing_max_yield_improvement: 0.35,
+    solar_bmc_max_grid_replacement: 1.0,
+    manure_digester_max_methane_capture: 0.60,
+    herd_health_genetics_max_abatement: 0.08
+  }
+};
+
+const REGIONAL_ZONES = [
+  {
+    zone_id: "zone_1",
+    zone_name: "Western Hub (Gujarat/Rajasthan)",
+    share_pct: 35,
+    baseline_intensity_kg_co2e_kg_milk: 2.25,
+    crossbred_share: 0.35,
+    buffalo_share: 0.50,
+    indigenous_share: 0.15,
+    avg_transport_km: 180
+  },
+  {
+    zone_id: "zone_2",
+    zone_name: "Northern Belt (Punjab/Haryana/UP)",
+    share_pct: 45,
+    baseline_intensity_kg_co2e_kg_milk: 1.98,
+    crossbred_share: 0.55,
+    buffalo_share: 0.35,
+    indigenous_share: 0.10,
+    avg_transport_km: 220
+  },
+  {
+    zone_id: "zone_3",
+    zone_name: "Southern Zone (Karnataka/MH)",
+    share_pct: 20,
+    baseline_intensity_kg_co2e_kg_milk: 2.10,
+    crossbred_share: 0.40,
+    buffalo_share: 0.40,
+    indigenous_share: 0.20,
+    avg_transport_km: 140
+  }
+];
+
+const CLIMATE_SCENARIOS = [
+  {
+    scenario_code: "baseline",
+    scenario_name: "Current Climate Baseline",
+    temp_anomaly_c: 0.0,
+    avg_summer_thi: 72.0,
+    crossbred_yield_loss_pct: 0.0,
+    buffalo_yield_loss_pct: 0.0,
+    desc: "Baseline conditions. Summer THI remains within normal comfort zone (72.0), incurring zero heat stress penalty."
+  },
+  {
+    scenario_code: "ssp1_26",
+    scenario_name: "SSP1-2.6 (+1.5°C Warming)",
+    temp_anomaly_c: 1.5,
+    avg_summer_thi: 75.2,
+    crossbred_yield_loss_pct: 8.5,
+    buffalo_yield_loss_pct: 4.2,
+    desc: "Under SSP1-2.6 (+1.5°C), summer THI rises to 75.2, triggering mild heat stress with 8.5% yield loss in crossbred cows and 4.2% in buffaloes."
+  },
+  {
+    scenario_code: "ssp2_45",
+    scenario_name: "SSP2-4.5 (+2.7°C Warming)",
+    temp_anomaly_c: 2.7,
+    avg_summer_thi: 78.6,
+    crossbred_yield_loss_pct: 16.0,
+    buffalo_yield_loss_pct: 8.1,
+    desc: "Under SSP2-4.5 (+2.7°C), summer THI reaches 78.6, causing high heat stress. Crossbred milk yields drop 16.0%, and buffaloes drop 8.1%."
+  },
+  {
+    scenario_code: "ssp5_85",
+    scenario_name: "SSP5-8.5 (+4.4°C Warming)",
+    temp_anomaly_c: 4.4,
+    avg_summer_thi: 83.1,
+    crossbred_yield_loss_pct: 24.5,
+    buffalo_yield_loss_pct: 12.4,
+    desc: "Under SSP5-8.5 (+4.4°C extreme scenario), summer THI reaches a critical 83.1. Severe heat stress causes a massive 24.5% yield crash in crossbred cows."
+  }
+];
+
+// STATE STORE
+const State = {
+  daily_volume_liters: 20000000,
+  target_reduction_pct: 30.0,
+  grid_ef: 0.716,
+  transit_ef: 0.110,
+  
+  // Levers (0 to 1.0)
+  lever_ration: 0.40,
+  lever_solar: 0.60,
+  lever_manure: 0.25,
+  lever_genetics: 0.45,
+  
+  // Selected Climate Scenario
+  selected_scenario_code: "ssp2_45",
+  
+  // Computed caches
+  baseline: null,
+  mitigation: null,
+  climate: null
+};
+
+// 1. BASELINE CALCULATIONS (carbon_math.py)
+function computeBaselineEmissions() {
+  const annual_volume_kg = State.daily_volume_liters * 365 * 1.03; // milk density 1.03 kg/L
+  
+  // Scope 1: Diesel combustion (0.005 L per kg)
+  const total_diesel_liters = annual_volume_kg * 0.005;
+  const scope1_kg_co2e = total_diesel_liters * CONFIG.enterprise_defaults.diesel_emission_factor_kg_co2e_liter;
+  
+  // Scope 2: Grid electricity (0.04 kWh per kg)
+  const total_kwh = annual_volume_kg * 0.04;
+  const scope2_kg_co2e = total_kwh * State.grid_ef;
+  
+  // Scope 3: Farm & Transport
+  let scope3_farm_kg_co2e = 0.0;
+  let scope3_transport_kg_co2e = 0.0;
+  let total_herd_count = 0.0;
+  
+  const gwp_ch4 = CONFIG.ipcc_gwp_ar6.ch4_biogenic;
+  const gwp_n2o = CONFIG.ipcc_gwp_ar6.n2o;
+  
+  REGIONAL_ZONES.forEach(zone => {
+    const zone_volume_kg = annual_volume_kg * (zone.share_pct / 100.0);
+    
+    // Transport: ton-km * transit_ef
+    const ton_km = (zone_volume_kg / 1000.0) * zone.avg_transport_km;
+    scope3_transport_kg_co2e += ton_km * State.transit_ef;
+    
+    // Herd composition
+    const mix = {
+      crossbred_cow: zone.crossbred_share,
+      buffalo: zone.buffalo_share,
+      indigenous_cow: zone.indigenous_share
+    };
+    
+    for (const [animal_type, share] of Object.entries(mix)) {
+      if (share <= 0) continue;
+      const daily_yield = CONFIG.scope3_farm_baseline.average_milk_yield_liters_per_day[animal_type];
+      const annual_animal_yield_kg = daily_yield * 365 * 1.03;
+      
+      const head_count = (zone_volume_kg * share) / annual_animal_yield_kg;
+      total_herd_count += head_count;
+      
+      const enteric_ch4 = CONFIG.scope3_farm_baseline.enteric_ch4_kg_per_head_yr[animal_type] * head_count;
+      const manure_ch4 = CONFIG.scope3_farm_baseline.manure_ch4_kg_per_head_yr[animal_type] * head_count;
+      const feed_n2o = CONFIG.scope3_farm_baseline.feed_n2o_kg_per_head_yr[animal_type] * head_count;
+      
+      const animal_co2e = (enteric_ch4 + manure_ch4) * gwp_ch4 + (feed_n2o * gwp_n2o);
+      scope3_farm_kg_co2e += animal_co2e;
+    }
+  });
+  
+  const scope3_total_kg_co2e = scope3_farm_kg_co2e + scope3_transport_kg_co2e;
+  const total_emissions_kg_co2e = scope1_kg_co2e + scope2_kg_co2e + scope3_total_kg_co2e;
+  const carbon_intensity = total_emissions_kg_co2e / annual_volume_kg;
+  const avg_daily_yield = total_herd_count > 0 ? (State.daily_volume_liters / total_herd_count) : 0.0;
+  
+  return {
+    annual_milk_kg: annual_volume_kg,
+    scope1_tco2e: scope1_kg_co2e / 1000.0,
+    scope2_tco2e: scope2_kg_co2e / 1000.0,
+    scope3_tco2e: scope3_total_kg_co2e / 1000.0,
+    total_tco2e: total_emissions_kg_co2e / 1000.0,
+    carbon_intensity_kg_co2e_per_kg_milk: carbon_intensity,
+    scope3_share_pct: (scope3_total_kg_co2e / total_emissions_kg_co2e) * 100.0,
+    baseline_active_herd_count: total_herd_count,
+    average_daily_yield_liters: avg_daily_yield
+  };
+}
+
+// 2. MITIGATION CALCULATIONS (mitigation.py)
+function computeMitigation(baseline) {
+  const total_baseline_tco2e = baseline.total_tco2e;
+  const scope3_tco2e = baseline.scope3_tco2e;
+  const scope2_tco2e = baseline.scope2_tco2e;
+  
+  const max_ration_eff = CONFIG.mitigation_max_efficiencies.ration_balancing_max_enteric_reduction;
+  const max_digester_eff = CONFIG.mitigation_max_efficiencies.manure_digester_max_methane_capture;
+  const max_genetics_eff = CONFIG.mitigation_max_efficiencies.herd_health_genetics_max_abatement;
+  const max_yield_improvement = CONFIG.mitigation_max_efficiencies.ration_balancing_max_yield_improvement;
+  
+  // 1. Ration Balancing (75% of Scope 3)
+  const enteric_base_tco2e = scope3_tco2e * 0.75;
+  const baseline_yield = baseline.average_daily_yield_liters;
+  const yield_improvement = State.lever_ration * max_yield_improvement;
+  const herd_reduction = baseline_yield > 0 ? (yield_improvement / (1.0 + yield_improvement)) : 0.0;
+  const direct_enteric_reduction = State.lever_ration * max_ration_eff;
+  const combined_enteric_reduction = 1.0 - ((1.0 - direct_enteric_reduction) * (1.0 - herd_reduction));
+  const ration_abatement_tco2e = enteric_base_tco2e * combined_enteric_reduction;
+  const improved_daily_yield = baseline_yield * (1.0 + yield_improvement);
+  const mitigated_herd = baseline.baseline_active_herd_count * (1.0 - herd_reduction);
+  
+  // 2. Solar BMCs (60% of Scope 2)
+  const solar_abatement_tco2e = scope2_tco2e * 0.60 * State.lever_solar;
+  
+  // 3. Manure Digesters (15% of Scope 3)
+  const manure_base_tco2e = scope3_tco2e * 0.15;
+  const digester_abatement_tco2e = manure_base_tco2e * (State.lever_manure * max_digester_eff);
+  
+  // 4. Genetics & Herd Health
+  const genetics_abatement_tco2e = total_baseline_tco2e * (State.lever_genetics * max_genetics_eff);
+  
+  const total_abatement_tco2e = ration_abatement_tco2e + solar_abatement_tco2e + digester_abatement_tco2e + genetics_abatement_tco2e;
+  const mitigated_total_tco2e = Math.max(0.0, total_baseline_tco2e - total_abatement_tco2e);
+  const new_intensity = (mitigated_total_tco2e * 1000.0) / baseline.annual_milk_kg;
+  const pct_reduction_achieved = ((total_baseline_tco2e - mitigated_total_tco2e) / total_baseline_tco2e) * 100.0;
+  
+  return {
+    ration_abatement_tco2e,
+    solar_abatement_tco2e,
+    digester_abatement_tco2e,
+    genetics_health_abatement_tco2e: genetics_abatement_tco2e,
+    baseline_active_herd_count: baseline.baseline_active_herd_count,
+    mitigated_active_herd_count: mitigated_herd,
+    improved_daily_yield_liters: improved_daily_yield,
+    total_abatement_tco2e,
+    mitigated_total_tco2e,
+    new_carbon_intensity: new_intensity,
+    pct_reduction_achieved
+  };
+}
+
+// 3. CLIMATE RISK CALCULATIONS (climate_risk.py)
+function computeClimateRisk(baseline, scenario_code) {
+  const scenario = CLIMATE_SCENARIOS.find(s => s.scenario_code === scenario_code) || CLIMATE_SCENARIOS[0];
+  
+  const yield_loss_crossbred = scenario.crossbred_yield_loss_pct / 100.0;
+  const yield_loss_buffalo = scenario.buffalo_yield_loss_pct / 100.0;
+  
+  const total_crossbred_share = REGIONAL_ZONES.reduce((acc, z) => acc + (z.crossbred_share * z.share_pct), 0) / 100.0;
+  const total_buffalo_share = REGIONAL_ZONES.reduce((acc, z) => acc + (z.buffalo_share * z.share_pct), 0) / 100.0;
+  
+  const weighted_yield_loss = (yield_loss_crossbred * total_crossbred_share) + (yield_loss_buffalo * total_buffalo_share);
+  
+  let herd_expansion_penalty_pct = 0.0;
+  if (weighted_yield_loss < 1.0) {
+    herd_expansion_penalty_pct = (weighted_yield_loss / (1.0 - weighted_yield_loss)) * 100.0;
+  }
+  
+  const baseline_scope3 = baseline.scope3_tco2e;
+  const escalated_scope3 = baseline_scope3 * (1.0 + (herd_expansion_penalty_pct / 100.0));
+  const escalated_total_tco2e = baseline.scope1_tco2e + baseline.scope2_tco2e + escalated_scope3;
+  const escalated_intensity = (escalated_total_tco2e * 1000.0) / baseline.annual_milk_kg;
+  const intensity_increase_pct = ((escalated_intensity - baseline.carbon_intensity_kg_co2e_per_kg_milk) / baseline.carbon_intensity_kg_co2e_per_kg_milk) * 100.0;
+  
+  return {
+    scenario_code: scenario.scenario_code,
+    scenario_name: scenario.scenario_name,
+    avg_summer_thi: scenario.avg_summer_thi,
+    desc: scenario.desc,
+    weighted_yield_loss_pct: weighted_yield_loss * 100.0,
+    herd_expansion_penalty_pct,
+    escalated_total_tco2e,
+    escalated_intensity,
+    intensity_increase_pct
+  };
+}
+
+// FORMATTING HELPERS
+const fmtNum = (n, dec = 0) => n.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+
+// PLOTLY CHART BUILDERS WITH OFFLINE SVG FALLBACKS
+function renderDonutChart(baseline) {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  if (window.Plotly) {
+    const data = [{
+      values: [baseline.scope1_tco2e, baseline.scope2_tco2e, baseline.scope3_tco2e],
+      labels: ['Scope 1 (Direct Fuel)', 'Scope 2 (Purchased Power)', 'Scope 3 (On-Farm & Logistics)'],
+      type: 'pie',
+      hole: 0.6,
+      marker: {
+        colors: ['#38bdf8', '#818cf8', '#f472b6']
+      },
+      textinfo: 'label+percent',
+      insidetextorientation: 'radial',
+      hoverinfo: 'label+value+percent',
+      textfont: { color: isLight ? '#0f172a' : '#ffffff', family: 'Outfit, sans-serif' }
+    }];
+
+    const layout = {
+      showlegend: false,
+      margin: { t: 20, b: 20, l: 20, r: 20 },
+      height: 320,
+      paper_bgcolor: 'rgba(0,0,0,0)',
+      plot_bgcolor: 'rgba(0,0,0,0)'
+    };
+
+    Plotly.react('chartScopeDonut', data, layout, { displayModeBar: false, responsive: true });
+    return;
+  }
+
+  // Pure SVG Fallback for completely offline environments
+  const el = document.getElementById('chartScopeDonut');
+  const total = baseline.scope1_tco2e + baseline.scope2_tco2e + baseline.scope3_tco2e;
+  const p1 = (baseline.scope1_tco2e / total) * 100;
+  const p2 = (baseline.scope2_tco2e / total) * 100;
+  const p3 = (baseline.scope3_tco2e / total) * 100;
+  const c1 = '#38bdf8', c2 = '#818cf8', c3 = '#f472b6';
+  const textColor = isLight ? '#0f172a' : '#f8fafc';
+  
+  el.innerHTML = `
+    <div style="display:flex; height:100%; align-items:center; justify-content:space-around; flex-wrap:wrap; gap:16px;">
+      <svg width="200" height="200" viewBox="0 0 42 42">
+        <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="${c3}" stroke-width="6" stroke-dasharray="${p3} ${100 - p3}" stroke-dashoffset="25"></circle>
+        <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="${c2}" stroke-width="6" stroke-dasharray="${p2} ${100 - p2}" stroke-dashoffset="${25 - p3}"></circle>
+        <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="${c1}" stroke-width="6" stroke-dasharray="${p1} ${100 - p1}" stroke-dashoffset="${25 - p3 - p2}"></circle>
+        <text x="21" y="22" text-anchor="middle" font-family="Outfit" font-size="3.5" font-weight="bold" fill="${textColor}">${p3.toFixed(1)}%</text>
+        <text x="21" y="26" text-anchor="middle" font-family="Inter" font-size="2.2" fill="${textColor}">Scope 3</text>
+      </svg>
+      <div style="font-size:0.85rem; display:flex; flex-direction:column; gap:8px;">
+        <div><span style="display:inline-block;width:12px;height:12px;background:${c1};border-radius:2px;margin-right:6px;"></span><strong>Scope 1:</strong> ${p1.toFixed(1)}% (${fmtNum(baseline.scope1_tco2e)} t)</div>
+        <div><span style="display:inline-block;width:12px;height:12px;background:${c2};border-radius:2px;margin-right:6px;"></span><strong>Scope 2:</strong> ${p2.toFixed(1)}% (${fmtNum(baseline.scope2_tco2e)} t)</div>
+        <div><span style="display:inline-block;width:12px;height:12px;background:${c3};border-radius:2px;margin-right:6px;"></span><strong>Scope 3:</strong> ${p3.toFixed(1)}% (${fmtNum(baseline.scope3_tco2e)} t)</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderWaterfallChart(baseline, mitigation) {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  const textColor = isLight ? '#0f172a' : '#f8fafc';
+  const gridColor = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)';
+
+  if (window.Plotly) {
+    const data = [{
+      type: "waterfall",
+      orientation: "v",
+      measure: ["absolute", "relative", "relative", "relative", "relative", "total"],
+      x: [
+        "Baseline",
+        "Ration Balancing",
+        "Solar BMCs",
+        "Manure Digesters",
+        "Herd Genetics",
+        "Mitigated Footprint"
+      ],
+      textposition: "outside",
+      text: [
+        fmtNum(baseline.total_tco2e),
+        "-" + fmtNum(mitigation.ration_abatement_tco2e),
+        "-" + fmtNum(mitigation.solar_abatement_tco2e),
+        "-" + fmtNum(mitigation.digester_abatement_tco2e),
+        "-" + fmtNum(mitigation.genetics_health_abatement_tco2e),
+        fmtNum(mitigation.mitigated_total_tco2e)
+      ],
+      y: [
+        baseline.total_tco2e,
+        -mitigation.ration_abatement_tco2e,
+        -mitigation.solar_abatement_tco2e,
+        -mitigation.digester_abatement_tco2e,
+        -mitigation.genetics_health_abatement_tco2e,
+        mitigation.mitigated_total_tco2e
+      ],
+      connector: { line: { color: "rgba(255,255,255,0.2)" } },
+      decreasing: { marker: { color: "#10b981" } },
+      totals: { marker: { color: "#0284c7" } },
+      increasing: { marker: { color: "#ef4444" } },
+      textfont: { family: 'Outfit, sans-serif', color: textColor, size: 12 }
+    }];
+
+    const layout = {
+      margin: { t: 30, b: 40, l: 50, r: 30 },
+      height: 340,
+      paper_bgcolor: 'rgba(0,0,0,0)',
+      plot_bgcolor: 'rgba(0,0,0,0)',
+      xaxis: { tickfont: { family: 'Inter', color: textColor, size: 11 } },
+      yaxis: {
+        title: { text: "Annual tCO₂e", font: { color: textColor, size: 12 } },
+        tickfont: { family: 'Inter', color: textColor },
+        gridcolor: gridColor
+      }
+    };
+
+    Plotly.react('chartWaterfall', data, layout, { displayModeBar: false, responsive: true });
+    return;
+  }
+
+  // Pure SVG Fallback for Waterfall
+  const el = document.getElementById('chartWaterfall');
+  const items = [
+    { label: "Baseline", val: baseline.total_tco2e, type: "base", color: "#0284c7" },
+    { label: "Ration", val: mitigation.ration_abatement_tco2e, type: "sub", color: "#10b981" },
+    { label: "Solar", val: mitigation.solar_abatement_tco2e, type: "sub", color: "#10b981" },
+    { label: "Manure", val: mitigation.digester_abatement_tco2e, type: "sub", color: "#10b981" },
+    { label: "Genetics", val: mitigation.genetics_health_abatement_tco2e, type: "sub", color: "#10b981" },
+    { label: "Target", val: mitigation.mitigated_total_tco2e, type: "total", color: "#0284c7" }
+  ];
+  const maxVal = Math.max(baseline.total_tco2e, 1);
+  const h = 260;
+  let running = baseline.total_tco2e;
+
+  const bars = items.map((it, idx) => {
+    let top, barH;
+    if (it.type === "base" || it.type === "total") {
+      barH = Math.max((it.val / maxVal) * (h - 50), 4);
+      top = h - barH - 30;
+    } else {
+      barH = Math.max((it.val / maxVal) * (h - 50), 3);
+      top = h - (running / maxVal) * (h - 50) - 30;
+      running -= it.val;
+    }
+    const x = 30 + idx * 82;
+    const sign = it.type === "sub" ? "-" : "";
+    return `
+      <g>
+        <rect x="${x}" y="${top}" width="54" height="${barH}" rx="4" fill="${it.color}" opacity="0.9"></rect>
+        <text x="${x + 27}" y="${top - 6}" text-anchor="middle" fill="${textColor}" font-family="Outfit" font-size="10" font-weight="700">${sign}${fmtNum(it.val)}</text>
+        <text x="${x + 27}" y="${h - 10}" text-anchor="middle" fill="${textColor}" font-family="Inter" font-size="10">${it.label}</text>
+      </g>
+    `;
+  }).join('');
+
+  el.innerHTML = `
+    <svg width="100%" height="340" viewBox="0 0 540 280">
+      <line x1="20" y1="${h - 30}" x2="520" y2="${h - 30}" stroke="${gridColor}" stroke-width="1"></line>
+      ${bars}
+    </svg>
+  `;
+}
+
+function renderClimateYieldChart() {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  const textColor = isLight ? '#0f172a' : '#f8fafc';
+  const gridColor = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)';
+
+  if (window.Plotly) {
+    const names = CLIMATE_SCENARIOS.map(s => s.scenario_name.split(" ")[0]);
+    const crossbredLoss = CLIMATE_SCENARIOS.map(s => s.crossbred_yield_loss_pct);
+    const buffaloLoss = CLIMATE_SCENARIOS.map(s => s.buffalo_yield_loss_pct);
+
+    const trace1 = {
+      x: names,
+      y: crossbredLoss,
+      name: 'Crossbred Cows',
+      type: 'bar',
+      marker: { color: '#ef4444' },
+      text: crossbredLoss.map(v => v > 0 ? `-${v}%` : '0%'),
+      textposition: 'auto',
+      textfont: { family: 'Outfit', color: '#ffffff' }
+    };
+
+    const trace2 = {
+      x: names,
+      y: buffaloLoss,
+      name: 'Buffaloes',
+      type: 'bar',
+      marker: { color: '#f59e0b' },
+      text: buffaloLoss.map(v => v > 0 ? `-${v}%` : '0%'),
+      textposition: 'auto',
+      textfont: { family: 'Outfit', color: '#ffffff' }
+    };
+
+    const layout = {
+      barmode: 'group',
+      margin: { t: 20, b: 40, l: 50, r: 20 },
+      height: 320,
+      paper_bgcolor: 'rgba(0,0,0,0)',
+      plot_bgcolor: 'rgba(0,0,0,0)',
+      legend: { font: { family: 'Inter', color: textColor }, orientation: 'h', y: 1.15 },
+      xaxis: { tickfont: { family: 'Inter', color: textColor, size: 12 } },
+      yaxis: {
+        title: { text: "Summer Yield Penalty (%)", font: { color: textColor, size: 12 } },
+        tickfont: { family: 'Inter', color: textColor },
+        gridcolor: gridColor
+      }
+    };
+
+    Plotly.react('chartClimateYield', [trace1, trace2], layout, { displayModeBar: false, responsive: true });
+    return;
+  }
+
+  // Pure SVG Fallback for Climate Chart
+  const el = document.getElementById('chartClimateYield');
+  const sc = CLIMATE_SCENARIOS;
+  const h = 260;
+  const bars = sc.map((s, idx) => {
+    const x = 30 + idx * 118;
+    const h1 = Math.max((s.crossbred_yield_loss_pct / 30) * (h - 60), 2);
+    const h2 = Math.max((s.buffalo_yield_loss_pct / 30) * (h - 60), 2);
+    const y1 = h - h1 - 30;
+    const y2 = h - h2 - 30;
+    return `
+      <g>
+        <rect x="${x}" y="${y1}" width="40" height="${h1}" rx="3" fill="#ef4444"></rect>
+        <text x="${x + 20}" y="${y1 - 6}" text-anchor="middle" fill="#ef4444" font-family="Outfit" font-size="10" font-weight="700">-${s.crossbred_yield_loss_pct}%</text>
+        <rect x="${x + 46}" y="${y2}" width="40" height="${h2}" rx="3" fill="#f59e0b"></rect>
+        <text x="${x + 66}" y="${y2 - 6}" text-anchor="middle" fill="#f59e0b" font-family="Outfit" font-size="10" font-weight="700">-${s.buffalo_yield_loss_pct}%</text>
+        <text x="${x + 43}" y="${h - 10}" text-anchor="middle" fill="${textColor}" font-family="Inter" font-size="11">${s.scenario_name.split(' ')[0]}</text>
+      </g>
+    `;
+  }).join('');
+
+  el.innerHTML = `
+    <div style="font-size:0.8rem; margin-bottom:8px; display:flex; gap:16px;">
+      <span style="color:#ef4444;">■ Crossbred Cows</span>
+      <span style="color:#f59e0b;">■ Buffaloes</span>
+    </div>
+    <svg width="100%" height="300" viewBox="0 0 520 280">
+      <line x1="20" y1="${h - 30}" x2="500" y2="${h - 30}" stroke="${gridColor}" stroke-width="1"></line>
+      ${bars}
+    </svg>
+  `;
+}
+
+// MAIN UI REFRESH CONTROLLER
+function updateAll() {
+  // 1. Run Analytical Models
+  State.baseline = computeBaselineEmissions();
+  State.mitigation = computeMitigation(State.baseline);
+  State.climate = computeClimateRisk(State.baseline, State.selected_scenario_code);
+  
+  const b = State.baseline;
+  const m = State.mitigation;
+  const c = State.climate;
+
+  // 2. Update Tab 1 (Strategy & Overview)
+  document.getElementById('kpiTargetVolume').textContent = `${(State.daily_volume_liters / 1e6).toFixed(1)}M L`;
+  document.getElementById('kpiAnnualProcessed').textContent = `~${(b.annual_milk_kg / 365 / 1e6).toFixed(2)}M kg daily processed`;
+  document.getElementById('kpiActiveHerd').textContent = fmtNum(b.baseline_active_herd_count);
+  document.getElementById('kpiAnnualMethane').textContent = `${fmtNum(b.baseline_active_herd_count * 60 / 1000)} T`;
+  
+  const targetIntensity = b.carbon_intensity_kg_co2e_per_kg_milk * (1.0 - (State.target_reduction_pct / 100.0));
+  document.getElementById('kpiTargetIntensity').textContent = targetIntensity.toFixed(3);
+  document.getElementById('kpiTargetDropDesc').textContent = `kg CO₂e/kg (${State.target_reduction_pct.toFixed(0)}% drop)`;
+
+  // 3. Update Tab 2 (Baseline)
+  document.getElementById('baseTotalTco2e').textContent = fmtNum(b.total_tco2e);
+  document.getElementById('baseIntensity').textContent = b.carbon_intensity_kg_co2e_per_kg_milk.toFixed(3);
+  document.getElementById('baseScope3Share').textContent = `${b.scope3_share_pct.toFixed(1)}%`;
+  document.getElementById('baseAnnualVolume').textContent = `${fmtNum(b.annual_milk_kg / 1e6, 0)}M kg`;
+
+  document.getElementById('scope1ValDisplay').textContent = `${fmtNum(b.scope1_tco2e)} tCO₂e`;
+  document.getElementById('scope2ValDisplay').textContent = `${fmtNum(b.scope2_tco2e)} tCO₂e`;
+  document.getElementById('scope3ValDisplay').textContent = `${fmtNum(b.scope3_tco2e)} tCO₂e`;
+
+  // Render Regional Table
+  const tableBody = document.querySelector('#regionalTable tbody');
+  tableBody.innerHTML = REGIONAL_ZONES.map(z => {
+    const mixStr = `${(z.crossbred_share*100)}% Cross, ${(z.buffalo_share*100)}% Buff, ${(z.indigenous_share*100)}% Indig`;
+    return `
+      <tr>
+        <td><strong>${z.zone_name}</strong></td>
+        <td>${z.share_pct}%</td>
+        <td>${z.baseline_intensity_kg_co2e_kg_milk.toFixed(2)}</td>
+        <td><span style="font-size:0.75rem; color:var(--text-muted);">${mixStr}</span></td>
+        <td>${z.avg_transport_km} km</td>
+      </tr>
+    `;
+  }).join('');
+
+  // 4. Update Tab 3 (Simulator)
+  document.getElementById('resAbatedVolume').textContent = fmtNum(m.total_abatement_tco2e);
+  document.getElementById('resNewIntensity').textContent = m.new_carbon_intensity.toFixed(3);
+  document.getElementById('resPctAchieved').textContent = `-${m.pct_reduction_achieved.toFixed(1)}%`;
+  document.getElementById('resMitigatedHerd').textContent = fmtNum(m.mitigated_active_herd_count);
+  
+  const cowsSaved = b.baseline_active_herd_count - m.mitigated_active_herd_count;
+  document.getElementById('resHerdReductionSub').textContent = `${fmtNum(cowsSaved)} fewer cows needed`;
+
+  // Target Status Card Banner
+  const statusBox = document.getElementById('targetStatusBox');
+  const statusText = document.getElementById('targetStatusText');
+  if (m.pct_reduction_achieved >= State.target_reduction_pct) {
+    statusBox.className = "target-status-box met";
+    statusText.innerHTML = `🎯 <strong>2030 Target Met!</strong> Achieved <strong>${m.pct_reduction_achieved.toFixed(1)}%</strong> reduction (Target: ${State.target_reduction_pct.toFixed(0)}%)`;
+  } else {
+    const gap = State.target_reduction_pct - m.pct_reduction_achieved;
+    statusBox.className = "target-status-box shortfall";
+    statusText.innerHTML = `⚠️ <strong>Target Shortfall:</strong> Achieved <strong>${m.pct_reduction_achieved.toFixed(1)}%</strong>. Need <strong>+${gap.toFixed(1)}%</strong> to reach ${State.target_reduction_pct.toFixed(0)}% goal.`;
+  }
+
+  // 5. Update Tab 4 (Climate)
+  document.getElementById('riskYieldLoss').textContent = `${c.weighted_yield_loss_pct.toFixed(1)}%`;
+  document.getElementById('riskHerdExpansion').textContent = `+${c.herd_expansion_penalty_pct.toFixed(1)}%`;
+  document.getElementById('riskEscalatedIntensity').textContent = c.escalated_intensity.toFixed(3);
+  document.getElementById('riskIntensityIncrease').textContent = `+${c.intensity_increase_pct.toFixed(1)}%`;
+  document.getElementById('scenarioDescription').textContent = c.desc;
+
+  // 6. Refresh Charts
+  renderDonutChart(b);
+  renderWaterfallChart(b, m);
+  renderClimateYieldChart();
+}
+
+// EVENT LISTENERS & WIRING
+window.addEventListener('DOMContentLoaded', () => {
+  // Tab Switching
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const tabPanes = document.querySelectorAll('.tab-pane');
+  
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabBtns.forEach(b => b.classList.remove('active'));
+      tabPanes.forEach(p => p.classList.remove('active'));
+      
+      btn.classList.add('active');
+      const targetId = btn.getAttribute('data-tab');
+      const activePane = document.getElementById(targetId);
+      if (activePane) {
+        activePane.classList.add('active');
+        // Trigger resize for Plotly responsive rendering
+        window.dispatchEvent(new Event('resize'));
+      }
+    });
+  });
+
+  // Sidebar Controls
+  const inputDailyVolume = document.getElementById('inputDailyVolume');
+  const valDailyVolume = document.getElementById('valDailyVolume');
+  inputDailyVolume.addEventListener('input', (e) => {
+    State.daily_volume_liters = parseFloat(e.target.value) * 1e6;
+    valDailyVolume.textContent = `${parseFloat(e.target.value).toFixed(1)}M L/day`;
+    updateAll();
+  });
+
+  const inputTargetReduction = document.getElementById('inputTargetReduction');
+  const valTargetReduction = document.getElementById('valTargetReduction');
+  inputTargetReduction.addEventListener('input', (e) => {
+    State.target_reduction_pct = parseFloat(e.target.value);
+    valTargetReduction.textContent = `${State.target_reduction_pct.toFixed(0)}% Drop`;
+    updateAll();
+  });
+
+  const inputGridEF = document.getElementById('inputGridEF');
+  inputGridEF.addEventListener('change', (e) => {
+    State.grid_ef = parseFloat(e.target.value) || 0.716;
+    updateAll();
+  });
+
+  const inputTransitEF = document.getElementById('inputTransitEF');
+  inputTransitEF.addEventListener('change', (e) => {
+    State.transit_ef = parseFloat(e.target.value) || 0.110;
+    updateAll();
+  });
+
+  // Reset Controls
+  document.getElementById('btnResetControls').addEventListener('click', () => {
+    State.daily_volume_liters = 20000000;
+    State.target_reduction_pct = 30.0;
+    State.grid_ef = 0.716;
+    State.transit_ef = 0.110;
+    
+    inputDailyVolume.value = 20;
+    valDailyVolume.textContent = "20.0M L/day";
+    inputTargetReduction.value = 30;
+    valTargetReduction.textContent = "30% Drop";
+    inputGridEF.value = 0.716;
+    inputTransitEF.value = 0.110;
+
+    // Reset simulator levers
+    State.lever_ration = 0.40;
+    State.lever_solar = 0.60;
+    State.lever_manure = 0.25;
+    State.lever_genetics = 0.45;
+    
+    document.getElementById('inputLeverRation').value = 40;
+    document.getElementById('valLeverRation').textContent = "40%";
+    document.getElementById('inputLeverSolar').value = 60;
+    document.getElementById('valLeverSolar').textContent = "60%";
+    document.getElementById('inputLeverManure').value = 25;
+    document.getElementById('valLeverManure').textContent = "25%";
+    document.getElementById('inputLeverGenetics').value = 45;
+    document.getElementById('valLeverGenetics').textContent = "45%";
+
+    updateAll();
+  });
+
+  // Decarbonization Lever Sliders (Tab 3)
+  const setupLever = (inputId, valId, stateKey) => {
+    const slider = document.getElementById(inputId);
+    const label = document.getElementById(valId);
+    slider.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value, 10);
+      State[stateKey] = val / 100.0;
+      label.textContent = `${val}%`;
+      updateAll();
+    });
+  };
+
+  setupLever('inputLeverRation', 'valLeverRation', 'lever_ration');
+  setupLever('inputLeverSolar', 'valLeverSolar', 'lever_solar');
+  setupLever('inputLeverManure', 'valLeverManure', 'lever_manure');
+  setupLever('inputLeverGenetics', 'valLeverGenetics', 'lever_genetics');
+
+  // Climate Scenario Pills
+  const scenarioPills = document.querySelectorAll('.scenario-pill');
+  scenarioPills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      scenarioPills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      State.selected_scenario_code = pill.getAttribute('data-scenario');
+      updateAll();
+    });
+  });
+
+  // Presentation Mode Toggle
+  const btnPres = document.getElementById('btnPresentationToggle');
+  btnPres.addEventListener('click', () => {
+    document.body.classList.toggle('presentation-mode');
+    btnPres.textContent = document.body.classList.contains('presentation-mode') ? '🗗 Exit Presentation' : '🖥️ Presentation View';
+    setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
+  });
+
+  // Theme Toggle
+  const btnTheme = document.getElementById('btnThemeToggle');
+  btnTheme.addEventListener('click', () => {
+    const curr = document.documentElement.getAttribute('data-theme');
+    const next = curr === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    updateAll();
+  });
+
+  // PPT Guide Modal
+  const modal = document.getElementById('modalPpt');
+  document.getElementById('btnPptGuide').addEventListener('click', () => modal.classList.add('open'));
+  document.getElementById('modalCloseBtn').addEventListener('click', () => modal.classList.remove('open'));
+  document.getElementById('modalGotItBtn').addEventListener('click', () => modal.classList.remove('open'));
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.classList.remove('open');
+  });
+
+  // Display local file path in snippet
+  document.getElementById('snippetPath').textContent = window.location.href || 'dashboard.html';
+
+  // Initial Calculation & Render
+  updateAll();
+});
+</script>
+
+</body>
+</html>
