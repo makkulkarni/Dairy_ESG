@@ -1038,6 +1038,9 @@
       <button class="tab-btn" data-tab="tab-climate">
         ☀️ IPCC Climate Stress-Test
       </button>
+      <button class="tab-btn" data-tab="tab-methodology">
+        📐 GHG Protocol &amp; Methodology
+      </button>
     </nav>
 
     <!-- VIEW CONTENT -->
@@ -1444,6 +1447,66 @@
           </div>
         </div>
 
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- TAB 5: GHG ACCOUNTING & IPCC CLIMATE METHODOLOGY             -->
+      <!-- ============================================================ -->
+      <section class="tab-pane" id="tab-methodology">
+        <div class="panel-header" style="margin-bottom: 16px;">
+          <h2 style="font-size: 1.3rem; font-weight: 700; color: var(--text-primary); margin: 0 0 6px 0;">GHG Protocol &amp; IPCC Stress-Test Methodology</h2>
+          <div class="panel-subtitle">Formal mathematical formulations for enterprise dairy carbon accounting, marginal abatement interventions, and THI climate degradation.</div>
+        </div>
+
+        <div class="grid-2col" style="gap: 16px;">
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">1. Enterprise Carbon Intensity Equation</div>
+            </div>
+            <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6;">
+              Following the GHG Protocol Corporate Standard (Scope 1, 2, and upstream Scope 3), enterprise carbon intensity per unit output is defined as:
+              <br><br>
+              $$\text{Carbon Intensity } (\text{kg CO}_2\text{e / kg milk}) = \frac{\text{Scope 1} + \text{Scope 2} + \text{Scope 3 Total } (\text{kg CO}_2\text{e})}{\text{Total Annual Raw Milk Procured } (\text{kg})}$$
+            </p>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">2. IPCC Tier-2 Enteric &amp; Farm Emissions</div>
+            </div>
+            <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6;">
+              Upstream farm-gate footprint sums enteric fermentation ($\text{CH}_4$, $\text{GWP}_{100} = 28$) and manure management ($\text{N}_2\text{O}$, $\text{GWP}_{100} = 265$):
+              <br><br>
+              $$E_{\text{farm}} = \sum_{z \in \text{Zones}} \left( N_{z,\text{cow}} \times \text{EF}_{\text{cow}} + N_{z,\text{buffalo}} \times \text{EF}_{\text{buffalo}} \right)$$
+            </p>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">3. Marginal Decarbonization Abatement Levers</div>
+            </div>
+            <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6;">
+              Net emission reduction across the 4 key operational intervention levers is computed additively against baseline footprint:
+              <br><br>
+              $$\Delta E = E_{\text{baseline}} \times \sum_{k \in \mathcal{K}} \left(\frac{\text{Adoption}_k}{100\%} \times \eta_k\right)$$
+              Where maximum efficiency factors are $\eta_{\text{ration}} = 28\%$, $\eta_{\text{manure}} = 12\%$, $\eta_{\text{solar}} = 2.2\%$, and $\eta_{\text{genetics}} = 8\%$.
+            </p>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">4. Temperature-Humidity Index (THI) &amp; Herd Expansion Trap</div>
+            </div>
+            <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6;">
+              IPCC thermal heat stress is evaluated via the National Research Council THI formulation:
+              <br><br>
+              $$\text{THI} = 0.8 \times T + \left(\frac{\text{RH}}{100}\right) \times (T - 14.4) + 46.4$$
+              When $\text{THI} > 72.0$, summer heat stress creates yield degradation $L_{\text{yield}}$. The compensating herd growth required to maintain procurement volume is:
+              <br><br>
+              $$\Delta \text{Herd (\%)} = \left(\frac{L_{\text{yield}}}{1 - L_{\text{yield}}}\right) \times 100\%$$
+            </p>
+          </div>
+        </div>
       </section>
 
     </div>
